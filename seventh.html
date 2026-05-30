@@ -106,7 +106,7 @@
     <div id="app-container" class="w-full max-w-md h-full sm:h-[850px] sm:max-h-screen bg-bgLight relative border-x-0 sm:border-x-4 sm:border-y-4 border-black sm:rounded-[40px] overflow-hidden flex flex-col shadow-neo-lg">
         
         <!-- ==================== HOME SCREEN ==================== -->
-        <div id="screen-home" class="screen active flex-col justify-center items-center h-full w-full bg-nYellow relative p-6">
+        <div id="screen-home" class="screen active flex-col justify-start items-center h-full w-full bg-nYellow relative p-6 overflow-y-auto">
             <!-- Decorative Elements -->
             <div class="absolute top-10 left-4 text-4xl text-nPink transform -rotate-12"><i class="fa-solid fa-star"></i></div>
             <div class="absolute bottom-32 right-8 text-5xl text-nBlue transform rotate-12"><i class="fa-solid fa-heart"></i></div>
@@ -322,7 +322,7 @@
             if (!exitTouchArmed || exitTouchBlocked || !event.touches || event.touches.length !== 1) return;
             const dx = event.touches[0].clientX - exitTouchStartX;
             const dy = event.touches[0].clientY - exitTouchStartY;
-            if (dy > EXIT_SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+            if (dy < -EXIT_SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
                 event.preventDefault();
             }
         }
@@ -335,7 +335,7 @@
             }
             const dx = event.changedTouches[0].clientX - exitTouchStartX;
             const dy = event.changedTouches[0].clientY - exitTouchStartY;
-            if (dy > EXIT_SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+            if (dy < -EXIT_SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
                 notifyParentHome();
             }
             exitTouchArmed = false;
@@ -343,7 +343,7 @@
         }
 
         function handleExitWheel(event) {
-            if (event.deltaY > 18 && !shouldBlockExitGesture(event.target)) {
+            if (event.deltaY < -18 && !shouldBlockExitGesture(event.target)) {
                 event.preventDefault();
                 notifyParentHome();
             }
