@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>合成大奶龙</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入 Matter.js 物理引擎 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+    <style>
+        /* 基础重置，防止移动端滚动和缩放 */
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: #f0f8ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none; /* 禁用默认的触摸滚动 */
+            -webkit-user-select: none; user-select: none;
+        }
+
+        /* 主容器，模拟手机屏幕 */
+        #app-container {
+            width: 100%; max-width: 480px; height: 100dvh;
+            margin: 0 auto; position: relative;
+            background-color: #fff9e6;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        /* 游戏区域：物理引擎渲染与DOM同步层 */
+        #game-area {
+            flex: 1; position: relative; width: 100%; overflow: hidden;
+            touch-action: none; /* 确保交互区不会触发浏览器默认行为 */
+        }
+
+        /* ================= 视觉元素 ================= */
+        .warning-line {
+            position: absolute; top: 15%; left: 0; width: 100%; height: 2px;
+            background: repeating-linear-gradient(90deg, #ff4d4f, #ff4d4f 10px, transparent 10px, transparent 20px);
+            z-index: 5; opacity: 0.3; transition: opacity 0.3s;
+        }
+        .warning-line.danger {
+            opacity: 1; animation: pulseWarning 0.5s infinite alternate;
+        }
+        @keyframes pulseWarning {
+            0% { box-shadow: 0 0 5px rgba(255, 77, 79, 0.5); }
+            100% { box-shadow: 0 0 15px rgba(255, 77, 79, 1); background-color: red; }
+        }
+
+        /* 真实水果DOM元素 */
+        .fruit-dom {
+            position: absolute; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: inset -3px -3px 10px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.15);
+            pointer-events: none; z-index: 10;
+            transform-origin: center center;
+            will-change: top, left, transform; /* 性能优化 */
+        }
+
+        /* 刚生成的放大动画 */
+        .pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 合并时的光环特效 */
+        .merge-fx {
+            position: absolute; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%);
+            pointer-events: none; z-index: 15;
+            animation: fxPop 0.4s ease-out forwards;
+        }
+        @keyframes fxPop {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+
+        /* 顶部预览线 */
+        #aim-line {
+            position: absolute; top: 0; width: 2px; height: 100%;
+            background-color: rgba(0,0,0,0.1); border-left: 2px dashed rgba(0,0,0,0.2);
+            pointer-events: none; z-index: 1;
+            transform: translateX(-50%); display: none;
+        }
+
+        /* 悬浮图标浮动动画 */
+        .float-anim { animation: floatAnim 3s ease-in-out infinite; }
+        @keyframes floatAnim {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+
+    <!-- ==================== HUD 界面 (游戏进行中顶层) ==================== -->
+    <div class="absolute top-0 w-full p-4 flex justify-between items-start z-30 pointer-events-none">
+        <!-- 分数 -->
+        <div class="bg-white/90 backdrop-blur-md rounded-2xl px-5 py-2 shadow-sm border border-white flex flex-col pointer-events-auto">
+            <span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Score</span>
+            <span id="score-display" class="text-3xl font-black text-orange-500 leading-none transition-transform duration-100">0</span>
+        </div>
+        <!-- 按钮 -->
+        <div class="flex gap-2 pointer-events-auto">
+            <button onclick="location.reload()" class="bg-white/90 rounded-2xl w-12 h-12 flex items-center justify-center shadow-sm active:scale-90 transition-transform text-gray-500">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== 游戏主场景 ==================== -->
+    <div id="warning-line" class="warning-line"></div>
+    
+    <!-- 物理引擎互动层 -->
+    <div id="game-area">
+        <div id="aim-line"></div>
+        <!-- 待掉落的预览水果 -->
+        <div id="preview-fruit" class="fruit-dom" style="display: none; z-index: 20; opacity: 0.8;"></div>
+        <!-- 真实的下落水果DOM会生成在这里 -->
+    </div>
+
+
+    <!-- ==================== 开始界面 ==================== -->
+    <div id="start-screen" class="absolute inset-0 bg-[#fff9e6] z-50 flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="relative w-48 h-48 mb-6 float-anim">
+            <div class="w-full h-full rounded-full flex items-center justify-center shadow-[0_15px_35px_rgba(255,165,0,0.3)]" style="background: radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b);">
+                <span class="text-white text-6xl font-black drop-shadow-md z-10">龙</span>
+                <i class="fa-solid fa-dragon text-white text-7xl opacity-40 absolute top-4 right-8 transform rotate-45"></i>
+            </div>
+        </div>
+
+        <h1 class="text-5xl font-black text-orange-500 tracking-wider mb-2 drop-shadow-sm">合成大奶龙</h1>
+
+        <button id="start-btn" class="bg-gradient-to-b from-orange-400 to-orange-600 text-white text-3xl font-black py-4 px-16 mt-8 rounded-full shadow-[0_8px_0_#ea580c] active:shadow-[0_0px_0_#ea580c] active:translate-y-2 transition-all cursor-pointer pointer-events-auto">
+            开始游戏
+        </button>
+    </div>
+
+
+    <!-- ==================== 结算界面 ==================== -->
+    <div id="game-over-screen" class="absolute inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex-col items-center justify-center transition-opacity duration-300 opacity-0">
+        <div class="bg-white w-[85%] max-w-[340px] rounded-[30px] p-8 flex flex-col items-center shadow-2xl transform scale-95 transition-transform duration-300" id="result-modal">
+            
+            <div class="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-4xl mb-4 -mt-16 border-4 border-white shadow-lg">
+                <i class="fa-solid fa-skull"></i>
+            </div>
+
+            <h2 class="text-3xl font-black text-gray-800 mb-1">游戏结束</h2>
+            <p class="text-gray-400 font-medium mb-6">哎呀，奶龙堆不下啦！</p>
+
+            <div class="bg-orange-50 w-full rounded-2xl py-4 flex flex-col items-center mb-6 border border-orange-100">
+                <span class="text-orange-400 font-medium mb-1 text-sm">本次得分</span>
+                <span id="final-score" class="text-6xl font-black text-orange-500 drop-shadow-sm">0</span>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-orange-500 text-white font-bold text-xl py-4 rounded-full shadow-[0_6px_0_#ea580c] active:shadow-[0_0px_0_#ea580c] active:translate-y-[6px] transition-all cursor-pointer">
+                再来一局
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /**
+     * 水果配置表 (等级、半径、颜色、图标)
+     * 等级10已替换为代表“大奶龙”的龙图标
+     */
+    const FRUITS = [
+        { level: 0, r: 16, color: '#e2b4f9', icon: 'fa-circle', iconColor: 'white', size: 'text-sm' }, 
+        { level: 1, r: 24, color: '#ff9e9e', icon: 'fa-apple-whole', iconColor: 'white', size: 'text-lg' }, 
+        { level: 2, r: 34, color: '#ffcc66', icon: 'fa-lemon', iconColor: 'white', size: 'text-2xl' }, 
+        { level: 3, r: 44, color: '#ffff66', icon: 'fa-sun', iconColor: '#b8860b', size: 'text-3xl' }, 
+        { level: 4, r: 56, color: '#b3e6b3', icon: 'fa-kiwi-bird', iconColor: 'white', size: 'text-4xl' }, 
+        { level: 5, r: 70, color: '#ff6b6b', icon: 'fa-apple-whole', iconColor: 'white', size: 'text-5xl' }, 
+        { level: 6, r: 86, color: '#ffccd5', icon: 'fa-peach', iconColor: 'white', size: 'text-6xl' }, 
+        { level: 7, r: 104, color: '#ffe066', icon: 'fa-crown', iconColor: 'white', size: 'text-7xl' }, 
+        { level: 8, r: 124, color: '#e6dace', icon: 'fa-bowling-ball', iconColor: 'white', size: 'text-8xl' }, 
+        { level: 9, r: 148, color: '#ff9999', icon: 'fa-moon', iconColor: 'white', size: 'text-8xl' }, 
+        { level: 10, r: 175, color: '#fcd34d', icon: 'fa-dragon', iconColor: '#d97706', size: 'text-9xl' } // 终极目标：大奶龙
+    ];
+
+    // Matter.js 模块引入
+    const Engine = Matter.Engine,
+          Render = Matter.Render,
+          Runner = Matter.Runner,
+          Bodies = Matter.Bodies,
+          Composite = Matter.Composite,
+          Events = Matter.Events,
+          Body = Matter.Body;
+
+    // 游戏全局状态
+    const Game = {
+        state: 'START', // START, PLAYING, GAMEOVER
+        engine: null,
+        runner: null,
+        width: 0,
+        height: 0,
+        score: 0,
+        fruitsData: [], // 存储物理体和DOM的映射 { body, el, level }
+        nextLevel: 0,
+        dropX: 0,
+        canDrop: true,
+        dangerTimer: 0 // 顶部停留警告计时器
+    };
+
+    // UI 引用
+    const UI = {
+        container: document.getElementById('app-container'),
+        area: document.getElementById('game-area'),
+        startScreen: document.getElementById('start-screen'),
+        gameOverScreen: document.getElementById('game-over-screen'),
+        scoreDisplay: document.getElementById('score-display'),
+        finalScore: document.getElementById('final-score'),
+        previewFruit: document.getElementById('preview-fruit'),
+        aimLine: document.getElementById('aim-line'),
+        warningLine: document.getElementById('warning-line'),
+        startBtn: document.getElementById('start-btn')
+    };
+
+    // 初始化游戏引擎
+    function initPhysics() {
+        Game.width = UI.area.clientWidth;
+        Game.height = UI.area.clientHeight;
+        Game.dropX = Game.width / 2;
+
+        Game.engine = Engine.create();
+        Game.engine.gravity.y = 1.2;
+
+        Game.runner = Runner.create();
+        Runner.run(Game.runner, Game.engine);
+
+        // 创建边界墙壁
+        const wallOptions = { isStatic: true, render: { visible: false } };
+        const ground = Bodies.rectangle(Game.width / 2, Game.height + 30, Game.width, 60, wallOptions);
+        const leftWall = Bodies.rectangle(-30, Game.height / 2, 60, Game.height * 2, wallOptions);
+        const rightWall = Bodies.rectangle(Game.width + 30, Game.height / 2, 60, Game.height * 2, wallOptions);
+        
+        Composite.add(Game.engine.world, [ground, leftWall, rightWall]);
+
+        Events.on(Game.engine, 'afterUpdate', syncDOM);
+        Events.on(Game.engine, 'collisionStart', handleMerge);
+
+        // 绑定用户交互事件
+        UI.area.addEventListener('pointerdown', handlePointerMove);
+        UI.area.addEventListener('pointermove', handlePointerMove);
+        UI.area.addEventListener('pointerup', handleDrop);
+        
+        UI.area.addEventListener('contextmenu', e => e.preventDefault());
+    }
+
+    // 更新预览
+    function updatePreview() {
+        const conf = FRUITS[Game.nextLevel];
+        
+        const minX = conf.r;
+        const maxX = Game.width - conf.r;
+        Game.dropX = Math.max(minX, Math.min(Game.dropX, maxX));
+
+        UI.previewFruit.className = `fruit-dom ${conf.size}`;
+        UI.previewFruit.style.width = `${conf.r * 2}px`;
+        UI.previewFruit.style.height = `${conf.r * 2}px`;
+        UI.previewFruit.style.background = `radial-gradient(circle at 30% 30%, ${conf.color}, #00000040)`;
+        UI.previewFruit.style.color = conf.iconColor === 'white' ? 'white' : conf.iconColor;
+        UI.previewFruit.innerHTML = `<i class="fa-solid ${conf.icon}"></i>`;
+        
+        UI.previewFruit.style.left = `${Game.dropX - conf.r}px`;
+        UI.previewFruit.style.top = `40px`;
+        UI.previewFruit.style.display = 'flex';
+
+        UI.aimLine.style.left = `${Game.dropX}px`;
+        UI.aimLine.style.display = 'block';
+    }
+
+    function handlePointerMove(e) {
+        if (Game.state !== 'PLAYING' || !Game.canDrop) return;
+        const rect = UI.area.getBoundingClientRect();
+        Game.dropX = e.clientX - rect.left;
+        updatePreview();
+    }
+
+    function handleDrop(e) {
+        if (Game.state !== 'PLAYING' || !Game.canDrop) return;
+        
+        Game.canDrop = false;
+        UI.previewFruit.style.display = 'none';
+        UI.aimLine.style.display = 'none';
+
+        spawnFruit(Game.dropX, 40 + FRUITS[Game.nextLevel].r, Game.nextLevel);
+
+        setTimeout(() => {
+            if (Game.state === 'PLAYING') {
+                Game.nextLevel = Math.floor(Math.random() * 5); // 生成 0-4 级的水果
+                updatePreview();
+                Game.canDrop = true;
+            }
+        }, 800);
+    }
+
+    function spawnFruit(x, y, level, isMerge = false) {
+        const conf = FRUITS[level];
+        
+        const el = document.createElement('div');
+        el.className = `fruit-dom ${conf.size} ${isMerge ? 'pop-in' : ''}`;
+        el.style.width = `${conf.r * 2}px`;
+        el.style.height = `${conf.r * 2}px`;
+        el.style.background = `radial-gradient(circle at 30% 30%, ${conf.color}, #00000040)`;
+        el.style.color = conf.iconColor === 'white' ? 'white' : conf.iconColor;
+        el.innerHTML = `<i class="fa-solid ${conf.icon}"></i>`;
+        UI.area.appendChild(el);
+
+        const body = Bodies.circle(x, y, conf.r, {
+            restitution: 0.2,
+            friction: 0.1,
+            density: 0.001 * (level + 1),
+            label: 'fruit',
+            render: { visible: false }
+        });
+
+        body.fruitLevel = level;
+        body.fruitId = Math.random().toString(36).substr(2, 9);
+        
+        Composite.add(Game.engine.world, body);
+        Game.fruitsData.push({ body, el, level, id: body.fruitId });
+    }
+
+    let mergeSet = new Set();
+    
+    function syncDOM() {
+        if (Game.state !== 'PLAYING') return;
+        
+        let hasDanger = false;
+        const warningY = Game.height * 0.15;
+
+        for (let i = 0; i < Game.fruitsData.length; i++) {
+            const data = Game.fruitsData[i];
+            const b = data.body;
+            
+            data.el.style.left = `${b.position.x - FRUITS[data.level].r}px`;
+            data.el.style.top = `${b.position.y - FRUITS[data.level].r}px`;
+            data.el.style.transform = `rotate(${b.angle}rad)`;
+
+            const highestPoint = b.position.y - FRUITS[data.level].r;
+            if (highestPoint < warningY) {
+                hasDanger = true;
+            }
+        }
+
+        if (hasDanger) {
+            Game.dangerTimer++;
+            UI.warningLine.classList.add('danger');
+            if (Game.dangerTimer > 90) { 
+                triggerGameOver();
+            }
+        } else {
+            Game.dangerTimer = 0;
+            UI.warningLine.classList.remove('danger');
+        }
+        
+        mergeSet.clear();
+    }
+
+    function handleMerge(event) {
+        if (Game.state !== 'PLAYING') return;
+        
+        const pairs = event.pairs;
+        
+        for (let i = 0; i < pairs.length; i++) {
+            const bodyA = pairs[i].bodyA;
+            const bodyB = pairs[i].bodyB;
+
+            if (bodyA.label === 'fruit' && bodyB.label === 'fruit' && bodyA.fruitLevel === bodyB.fruitLevel) {
+                
+                if (mergeSet.has(bodyA.fruitId) || mergeSet.has(bodyB.fruitId)) continue;
+                mergeSet.add(bodyA.fruitId);
+                mergeSet.add(bodyB.fruitId);
+
+                Composite.remove(Game.engine.world, [bodyA, bodyB]);
+                
+                let dataA = Game.fruitsData.find(f => f.id === bodyA.fruitId);
+                let dataB = Game.fruitsData.find(f => f.id === bodyB.fruitId);
+                
+                if(dataA) dataA.el.remove();
+                if(dataB) dataB.el.remove();
+
+                Game.fruitsData = Game.fruitsData.filter(f => f.id !== bodyA.fruitId && f.id !== bodyB.fruitId);
+
+                const midX = (bodyA.position.x + bodyB.position.x) / 2;
+                const midY = (bodyA.position.y + bodyB.position.y) / 2;
+                const newLevel = bodyA.fruitLevel + 1;
+
+                addScore((newLevel) * 10);
+                playMergeEffect(midX, midY);
+
+                if (newLevel <= 10) {
+                    setTimeout(() => {
+                        spawnFruit(midX, midY, newLevel, true);
+                    }, 0);
+                }
+            }
+        }
+    }
+
+    function playMergeEffect(x, y) {
+        const fx = document.createElement('div');
+        fx.className = 'merge-fx';
+        fx.style.width = '60px'; fx.style.height = '60px';
+        fx.style.left = `${x - 30}px`; fx.style.top = `${y - 30}px`;
+        UI.area.appendChild(fx);
+        setTimeout(() => fx.remove(), 450);
+    }
+
+    function addScore(points) {
+        Game.score += points;
+        UI.scoreDisplay.innerText = Game.score;
+        UI.scoreDisplay.style.transform = 'scale(1.4)';
+        UI.scoreDisplay.style.color = '#ef4444';
+        setTimeout(() => {
+            UI.scoreDisplay.style.transform = 'scale(1)';
+            UI.scoreDisplay.style.color = '#f97316';
+        }, 150);
+    }
+
+    function triggerGameOver() {
+        Game.state = 'GAMEOVER';
+        Runner.stop(Game.runner);
+
+        UI.finalScore.innerText = Game.score;
+        UI.gameOverScreen.style.display = 'flex';
+        setTimeout(() => {
+            UI.gameOverScreen.style.opacity = '1';
+            document.getElementById('result-modal').style.transform = 'scale(1)';
+        }, 100);
+    }
+
+    function startGame() {
+        UI.startScreen.style.opacity = '0';
+        setTimeout(() => {
+            UI.startScreen.style.display = 'none';
+            Game.state = 'PLAYING';
+            Game.score = 0;
+            UI.scoreDisplay.innerText = '0';
+            
+            Game.nextLevel = Math.floor(Math.random() * 4);
+            updatePreview();
+        }, 400);
+    }
+
+    // 绑定开始按钮
+    UI.startBtn.addEventListener('click', startGame);
+
+    window.addEventListener('load', () => {
+        initPhysics();
+    });
+
+</script>
+</body>
+</html>

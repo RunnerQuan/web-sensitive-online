@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>多巴胺连连看 - 动感微立体版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 新粗野主义/多巴胺风格基础设定 */
+        body {
+            /* 清爽的浅靛蓝色背景 */
+            background-color: #e0e7ff; 
+            touch-action: manipulation;
+            user-select: none;
+            /* 增加微妙的波点网格背景以提升微立体风格质感 */
+            background-image: radial-gradient(#94a3b8 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+        
+        /* 核心微立体/新粗野主义面板 */
+        .neo-box {
+            background-color: #ffffff;
+            border: 4px solid #111827; /* 粗黑边框 */
+            box-shadow: 6px 6px 0px #111827; /* 硬核实体阴影 */
+            border-radius: 16px;
+        }
+
+        /* 动感按钮 */
+        .neo-btn {
+            border: 4px solid #111827;
+            box-shadow: 6px 6px 0px #111827;
+            border-radius: 12px;
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .neo-btn:active {
+            transform: translate(6px, 6px);
+            box-shadow: 0px 0px 0px #111827;
+        }
+
+        /* 棋盘方块样式 */
+        .tile {
+            background-color: #ffffff;
+            border: 3px solid #111827;
+            box-shadow: 3px 3px 0px #111827;
+            border-radius: 12px;
+            transition: all 0.1s ease-out;
+            cursor: pointer;
+        }
+        
+        .tile:active {
+            transform: translate(3px, 3px);
+            box-shadow: 0px 0px 0px #111827;
+        }
+        
+        /* 选中状态 (多巴胺粉色高亮) */
+        .tile.selected {
+            background-color: #f472b6; /* pink-400 */
+            border-color: #111827;
+            transform: translate(3px, 3px) scale(0.95);
+            box-shadow: 0px 0px 0px #111827;
+        }
+        .tile.selected i {
+            color: #ffffff !important;
+            transform: scale(1.2);
+            transition: transform 0.2s;
+        }
+        
+        /* 消除状态 */
+        .tile.matched {
+            transform: scale(0);
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 0 0 transparent;
+        }
+
+        /* 外围隐形通道 (必须在DOM中占据空间，但完全不可见) */
+        .tile.hidden-path {
+            opacity: 0;
+            pointer-events: none;
+            border: none;
+            box-shadow: none;
+            background: transparent;
+        }
+
+        /* 进度条动画 */
+        .neo-progress-bar {
+            transition: width 1s linear;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden text-gray-900 font-sans flex flex-col items-center">
+
+    <!-- ================= 1. 首页 (Home Screen) ================= -->
+    <div id="screen-home" class="absolute inset-0 flex items-center justify-center z-50 bg-[#e0e7ff] transition-opacity duration-300">
+        <div class="neo-box p-8 flex flex-col items-center w-11/12 max-w-sm text-center bg-[#fdf4ff]">
+            <div class="w-24 h-24 bg-[#fde047] rounded-full flex items-center justify-center mb-6 border-4 border-black shadow-[4px_4px_0_0_#000]">
+                <i class="fa-solid fa-face-laugh-squint text-6xl text-black"></i>
+            </div>
+            <h1 class="text-4xl font-black text-black mb-3 uppercase tracking-tighter">多巴胺连连看</h1>
+            <p class="text-gray-700 mb-8 font-bold border-b-4 border-[#34d399] pb-2 inline-block">5 分钟激情寻路挑战！</p>
+            <button onclick="startGame()" class="neo-btn w-full py-4 bg-[#f472b6] text-white font-black text-2xl">
+                <i class="fa-solid fa-bolt mr-2"></i> 开始游戏
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= 2. 游戏页 (Game Screen) ================= -->
+    <div id="screen-game" class="absolute inset-0 hidden flex-col z-40 max-w-2xl mx-auto w-full">
+        
+        <!-- 顶部状态栏 -->
+        <div class="neo-box mx-4 mt-6 p-3 flex justify-between items-center bg-white">
+            <div class="flex flex-col w-1/3">
+                <span class="text-[10px] text-gray-500 font-black uppercase mb-1">TIME</span>
+                <div class="flex items-center">
+                    <span id="timer-display" class="text-2xl font-black text-black font-mono tracking-tighter">05:00</span>
+                </div>
+            </div>
+            
+            <div class="w-1/3 px-2 flex justify-center">
+                <!-- 中心多巴胺笑脸 -->
+                <i class="fa-solid fa-gamepad text-3xl text-[#8b5cf6]"></i>
+            </div>
+
+            <div class="flex flex-col w-1/3 text-right">
+                <span class="text-[10px] text-gray-500 font-black uppercase mb-1">SCORE</span>
+                <div class="flex items-center justify-end">
+                    <span id="score-display" class="text-2xl font-black text-[#f43f5e] font-mono tracking-tighter">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 全局进度条 (微立体风格) -->
+        <div class="mx-4 mt-4 h-4 bg-white border-2 border-black rounded-full overflow-hidden relative shadow-[2px_2px_0_0_#000]">
+            <div id="time-bar" class="neo-progress-bar absolute top-0 left-0 h-full bg-[#34d399] border-r-2 border-black" style="width: 100%"></div>
+        </div>
+
+        <!-- 游戏棋盘区域 (包含 SVG 连线层) -->
+        <div class="flex-1 flex flex-col items-center justify-center p-2 w-full mt-2">
+            <div class="relative w-full max-w-lg mx-auto">
+                <!-- 棋盘容器：8列 (6列可视 + 2列边缘隐藏层，用于绕线计算) -->
+                <!-- 注意：在JS生成时外圈会被设为透明 -->
+                <div id="game-board" class="grid grid-cols-8 gap-1 p-1 sm:gap-2 sm:p-2 neo-box bg-[#fef08a] w-full aspect-[8/10]">
+                    <!-- 方块由 JavaScript 动态生成 -->
+                </div>
+                
+                <!-- SVG 画布：覆盖在棋盘正上方，用于实时绘制连线 -->
+                <svg id="line-svg" class="absolute top-0 left-0 w-full h-full pointer-events-none z-50"></svg>
+            </div>
+        </div>
+
+        <!-- 底部操作区 -->
+        <div class="mb-6 mx-4 flex justify-between space-x-4">
+            <button onclick="shuffleBoard()" class="neo-btn flex-1 py-3 bg-[#22d3ee] text-black font-black text-lg flex items-center justify-center">
+                <i class="fa-solid fa-shuffle mr-2"></i> 重排 (<span id="shuffle-count">3</span>)
+            </button>
+            <button onclick="quitGame()" class="neo-btn px-6 py-3 bg-[#facc15] text-black font-black text-lg flex items-center justify-center">
+                <i class="fa-solid fa-door-open"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= 3. 结算页 (Result Screen) ================= -->
+    <div id="screen-result" class="absolute inset-0 hidden flex items-center justify-center z-50 bg-[#e0e7ff] bg-opacity-90 transition-opacity duration-300">
+        <div class="neo-box p-8 flex flex-col items-center w-11/12 max-w-sm text-center bg-white">
+            
+            <div id="result-icon-container" class="w-24 h-24 rounded-full flex items-center justify-center mb-6 border-4 border-black shadow-[4px_4px_0_0_#000]">
+                <!-- 动态注入胜利或失败图标 -->
+            </div>
+            
+            <h2 id="result-title" class="text-4xl font-black mb-2 uppercase tracking-tight text-black"></h2>
+            <p id="result-message" class="text-gray-600 mb-6 font-bold"></p>
+            
+            <div class="border-4 border-black w-full rounded-2xl p-4 mb-8 flex justify-around bg-[#fef9c3] shadow-[4px_4px_0_0_#000]">
+                <div class="text-center">
+                    <div class="text-xs text-gray-500 uppercase font-black mb-1">SCORE</div>
+                    <div id="final-score" class="text-3xl font-black text-[#ec4899] font-mono">0</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xs text-gray-500 uppercase font-black mb-1">TIME</div>
+                    <div id="final-time" class="text-3xl font-black text-[#3b82f6] font-mono">0s</div>
+                </div>
+            </div>
+
+            <div class="flex w-full space-x-3">
+                <button onclick="backToHome()" class="neo-btn flex-1 py-4 bg-[#e5e7eb] text-black font-black">
+                    返回
+                </button>
+                <button onclick="startGame()" class="neo-btn flex-1 py-4 bg-[#34d399] text-black font-black">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> 再来
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 游戏逻辑脚本 ================= -->
+    <script>
+        // --- 游戏配置常量 ---
+        const GAME_DURATION = 300; // 5分钟
+        const ROWS = 8;            // 可视区行数
+        const COLS = 6;            // 可视区列数
+        
+        // 逻辑行数和列数（外围增加一圈0，用于寻找外部绕行路径）
+        const LOGICAL_ROWS = ROWS + 2; // 10
+        const LOGICAL_COLS = COLS + 2; // 8
+        
+        // 多巴胺趣味图标库 (12种)
+        const ICONS = [
+            'fa-star', 'fa-heart', 'fa-bolt', 'fa-gem', 
+            'fa-ghost', 'fa-rocket', 'fa-moon', 'fa-sun', 
+            'fa-fire', 'fa-leaf', 'fa-cloud', 'fa-snowflake'
+        ];
+        
+        // 给图标搭配不同的颜色让画面更鲜艳
+        const ICON_COLORS = [
+            'text-[#f43f5e]', 'text-[#ec4899]', 'text-[#d946ef]', 'text-[#8b5cf6]',
+            'text-[#6366f1]', 'text-[#3b82f6]', 'text-[#0ea5e9]', 'text-[#06b6d4]',
+            'text-[#14b8a6]', 'text-[#10b981]', 'text-[#22c55e]', 'text-[#84cc16]'
+        ];
+
+        // --- 全局状态 ---
+        let board = [];
+        let selectedTile = null;
+        let score = 0;
+        let timeLeft = 0;
+        let timerInterval = null;
+        let pairsLeft = 0;
+        let shuffleChances = 3;
+        let isAnimating = false; // 阻挡动画期间的点击
+
+        // --- DOM 缓存 ---
+        const elHome = document.getElementById('screen-home');
+        const elGame = document.getElementById('screen-game');
+        const elResult = document.getElementById('screen-result');
+        const elTimer = document.getElementById('timer-display');
+        const elTimeBar = document.getElementById('time-bar');
+        const elScore = document.getElementById('score-display');
+        const elBoard = document.getElementById('game-board');
+        const elShuffleCount = document.getElementById('shuffle-count');
+        const lineSvg = document.getElementById('line-svg');
+
+        // ================= 游戏流程控制 =================
+
+        function startGame() {
+            elHome.classList.add('hidden');
+            elResult.classList.add('hidden');
+            elGame.classList.remove('hidden');
+            elGame.classList.add('flex');
+            
+            lineSvg.innerHTML = ''; // 清理上一局画线
+
+            score = 0;
+            timeLeft = GAME_DURATION;
+            pairsLeft = (ROWS * COLS) / 2;
+            selectedTile = null;
+            shuffleChances = 3;
+            isAnimating = false;
+            
+            elShuffleCount.textContent = shuffleChances;
+            updateScoreUI();
+            updateTimerUI();
+
+            initBoard();
+            renderBoard();
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(timerTick, 1000);
+        }
+
+        function timerTick() {
+            timeLeft--;
+            updateTimerUI();
+            if (timeLeft <= 0) endGame(false);
+        }
+
+        function endGame(win) {
+            clearInterval(timerInterval);
+            
+            setTimeout(() => {
+                elGame.classList.remove('flex');
+                elGame.classList.add('hidden');
+                elResult.classList.remove('hidden');
+
+                const timeSpent = GAME_DURATION - timeLeft;
+                document.getElementById('final-score').textContent = score;
+                document.getElementById('final-time').textContent = timeSpent + 's';
+
+                const iconContainer = document.getElementById('result-icon-container');
+                const title = document.getElementById('result-title');
+                const msg = document.getElementById('result-message');
+
+                if (win) {
+                    iconContainer.className = "w-24 h-24 bg-[#34d399] rounded-full flex items-center justify-center mb-6 border-4 border-black shadow-[4px_4px_0_0_#000]";
+                    iconContainer.innerHTML = '<i class="fa-solid fa-crown text-5xl text-black"></i>';
+                    title.textContent = "多巴胺王者！";
+                    msg.textContent = "惊人的眼力与手速！";
+                } else {
+                    iconContainer.className = "w-24 h-24 bg-[#f43f5e] rounded-full flex items-center justify-center mb-6 border-4 border-black shadow-[4px_4px_0_0_#000]";
+                    iconContainer.innerHTML = '<i class="fa-solid fa-bomb text-5xl text-black"></i>';
+                    title.textContent = "时间耗尽";
+                    msg.textContent = "下次再快一点点就赢啦！";
+                }
+            }, 500);
+        }
+
+        function quitGame() {
+            clearInterval(timerInterval);
+            elGame.classList.remove('flex');
+            elGame.classList.add('hidden');
+            elHome.classList.remove('hidden');
+        }
+
+        function backToHome() {
+            elResult.classList.add('hidden');
+            elHome.classList.remove('hidden');
+        }
+
+        // ================= UI 更新 =================
+
+        function updateTimerUI() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            elTimer.textContent = `${m}:${s}`;
+
+            const pct = (timeLeft / GAME_DURATION) * 100 + '%';
+            elTimeBar.style.width = pct;
+
+            if (timeLeft < 30) {
+                elTimeBar.classList.replace('bg-[#34d399]', 'bg-[#f43f5e]'); // 变红
+                elTimer.classList.add('text-[#f43f5e]');
+            } else {
+                elTimeBar.classList.replace('bg-[#f43f5e]', 'bg-[#34d399]');
+                elTimer.classList.remove('text-[#f43f5e]');
+            }
+        }
+
+        function updateScoreUI() {
+            elScore.textContent = score;
+        }
+
+        // ================= 棋盘生成与渲染 =================
+
+        function initBoard() {
+            board = Array.from({ length: LOGICAL_ROWS }, () => Array(LOGICAL_COLS).fill(0));
+
+            let tileTypes = [];
+            let totalTiles = ROWS * COLS;
+            for (let i = 0; i < totalTiles / 2; i++) {
+                let typeId = (i % ICONS.length) + 1; 
+                tileTypes.push(typeId, typeId);
+            }
+
+            for (let i = tileTypes.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [tileTypes[i], tileTypes[j]] = [tileTypes[j], tileTypes[i]];
+            }
+
+            let index = 0;
+            for (let r = 1; r <= ROWS; r++) {
+                for (let c = 1; c <= COLS; c++) {
+                    board[r][c] = tileTypes[index++];
+                }
+            }
+        }
+
+        // 渲染整个 10x8 矩阵，外圈设置透明，以便获得精确的 DOM 坐标供 SVG 画线
+        function renderBoard() {
+            elBoard.innerHTML = '';
+            for (let r = 0; r < LOGICAL_ROWS; r++) {
+                for (let c = 0; c < LOGICAL_COLS; c++) {
+                    const val = board[r][c];
+                    
+                    const btn = document.createElement('button');
+                    btn.dataset.r = r;
+                    btn.dataset.c = c;
+                    btn.id = `tile-${r}-${c}`;
+                    
+                    // 内核可视区域
+                    if (r > 0 && r <= ROWS && c > 0 && c <= COLS) {
+                        btn.className = `tile aspect-square flex items-center justify-center text-3xl sm:text-4xl`;
+                        if (val > 0) {
+                            const iconClass = ICONS[val - 1];
+                            const colorClass = ICON_COLORS[(val - 1) % ICON_COLORS.length];
+                            btn.innerHTML = `<i class="fa-solid ${iconClass} ${colorClass} pointer-events-none drop-shadow-md"></i>`;
+                            btn.onclick = () => handleTileClick(r, c);
+                        } else {
+                            btn.classList.add('matched');
+                        }
+                    } else {
+                        // 外围空层 (隐形通道)
+                        btn.className = `tile hidden-path aspect-square`;
+                    }
+                    
+                    elBoard.appendChild(btn);
+                }
+            }
+        }
+
+        function getTileDOM(r, c) {
+            return document.getElementById(`tile-${r}-${c}`);
+        }
+
+        function shuffleBoard() {
+            if (shuffleChances <= 0 || isAnimating) return;
+            shuffleChances--;
+            elShuffleCount.textContent = shuffleChances;
+            
+            let remaining = [];
+            for (let r = 1; r <= ROWS; r++) {
+                for (let c = 1; c <= COLS; c++) {
+                    if (board[r][c] !== 0) remaining.push(board[r][c]);
+                }
+            }
+            remaining.sort(() => Math.random() - 0.5);
+
+            let index = 0;
+            for (let r = 1; r <= ROWS; r++) {
+                for (let c = 1; c <= COLS; c++) {
+                    if (board[r][c] !== 0) {
+                        board[r][c] = remaining[index++];
+                    }
+                }
+            }
+            
+            selectedTile = null;
+            renderBoard(); // 重新渲染DOM
+        }
+
+        // ================= 点击处理与画线 =================
+
+        async function handleTileClick(r, c) {
+            if (board[r][c] === 0 || isAnimating) return; 
+            const clickedDom = getTileDOM(r, c);
+
+            if (!selectedTile) {
+                selectedTile = { r, c };
+                clickedDom.classList.add('selected');
+                return;
+            }
+
+            if (selectedTile.r === r && selectedTile.c === c) {
+                clickedDom.classList.remove('selected');
+                selectedTile = null;
+                return;
+            }
+
+            const val1 = board[selectedTile.r][selectedTile.c];
+            const val2 = board[r][c];
+            const firstDom = getTileDOM(selectedTile.r, selectedTile.c);
+
+            if (val1 === val2) {
+                const path = findPath(selectedTile, { r, c });
+                
+                if (path) {
+                    isAnimating = true; // 锁定交互
+                    
+                    // 1. 绘制多巴胺连线
+                    await drawSVGLine(path);
+                    
+                    // 2. 隐藏方块
+                    firstDom.classList.remove('selected');
+                    firstDom.classList.add('matched');
+                    clickedDom.classList.add('matched');
+                    
+                    // 3. 更新逻辑数组
+                    board[selectedTile.r][selectedTile.c] = 0;
+                    board[r][c] = 0;
+                    
+                    // 4. 数据更新
+                    score += 50;
+                    updateScoreUI();
+                    pairsLeft--;
+                    selectedTile = null;
+                    isAnimating = false;
+
+                    if (pairsLeft === 0) endGame(true);
+                } else {
+                    changeSelection(firstDom, clickedDom, { r, c });
+                }
+            } else {
+                changeSelection(firstDom, clickedDom, { r, c });
+            }
+        }
+
+        function changeSelection(oldDom, newDom, newPos) {
+            oldDom.classList.remove('selected');
+            selectedTile = newPos;
+            newDom.classList.add('selected');
+        }
+
+        // ================= SVG 画线模块 =================
+        
+        function drawSVGLine(pathCoords) {
+            return new Promise(resolve => {
+                lineSvg.innerHTML = '';
+                
+                // 将行列坐标映射到网格面板的像素坐标 (取方块中心点)
+                const points = pathCoords.map(p => {
+                    const el = getTileDOM(p.r, p.c);
+                    // offsetTop/Left 相对的是父元素 #game-board，正合我意
+                    const x = el.offsetLeft + el.offsetWidth / 2;
+                    const y = el.offsetTop + el.offsetHeight / 2;
+                    return `${x},${y}`;
+                }).join(' ');
+
+                // 生成微立体风格双层折线 (底层黑边，上层彩色)
+                
+                // 1. 黑色阴影/边框线
+                const shadowLine = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                shadowLine.setAttribute('points', points);
+                shadowLine.setAttribute('fill', 'none');
+                shadowLine.setAttribute('stroke', '#111827');
+                shadowLine.setAttribute('stroke-width', '14'); 
+                shadowLine.setAttribute('stroke-linecap', 'square'); // 矩形线帽符合粗野风
+                shadowLine.setAttribute('stroke-linejoin', 'miter');
+                shadowLine.setAttribute('transform', 'translate(3, 3)'); // 偏移产生硬核阴影
+
+                // 2. 多巴胺荧光色主线
+                const mainLine = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                mainLine.setAttribute('points', points);
+                mainLine.setAttribute('fill', 'none');
+                mainLine.setAttribute('stroke', '#22d3ee'); // cyan-400
+                mainLine.setAttribute('stroke-width', '10');
+                mainLine.setAttribute('stroke-linecap', 'square');
+                mainLine.setAttribute('stroke-linejoin', 'miter');
+                
+                lineSvg.appendChild(shadowLine);
+                lineSvg.appendChild(mainLine);
+
+                // 停留 300 毫秒后清除连线并解锁
+                setTimeout(() => {
+                    lineSvg.innerHTML = '';
+                    resolve();
+                }, 300);
+            });
+        }
+
+        // ================= 核心寻路算法 (返回具体路径点数组) =================
+
+        function findPath(p1, p2) {
+            let path = matchDirectPath(p1, p2);
+            if (path) return path;
+
+            path = matchOneCornerPath(p1, p2);
+            if (path) return path;
+
+            path = matchTwoCornerPath(p1, p2);
+            if (path) return path;
+
+            return null; // 无解
+        }
+
+        function isClear(r, c) {
+            return board[r][c] === 0;
+        }
+
+        // 直线相连 (0折)
+        function matchDirectPath(p1, p2) {
+            if (p1.r !== p2.r && p1.c !== p2.c) return null;
+
+            if (p1.r === p2.r) {
+                const minC = Math.min(p1.c, p2.c);
+                const maxC = Math.max(p1.c, p2.c);
+                for (let c = minC + 1; c < maxC; c++) {
+                    if (!isClear(p1.r, c)) return null;
+                }
+                return [p1, p2];
+            } else {
+                const minR = Math.min(p1.r, p2.r);
+                const maxR = Math.max(p1.r, p2.r);
+                for (let r = minR + 1; r < maxR; r++) {
+                    if (!isClear(r, p1.c)) return null;
+                }
+                return [p1, p2];
+            }
+        }
+
+        // 1折连通 (通过一个拐角)
+        function matchOneCornerPath(p1, p2) {
+            const corner1 = { r: p1.r, c: p2.c };
+            const corner2 = { r: p2.r, c: p1.c };
+
+            if (isClear(corner1.r, corner1.c) && matchDirectPath(p1, corner1) && matchDirectPath(corner1, p2)) {
+                return [p1, corner1, p2];
+            }
+            if (isClear(corner2.r, corner2.c) && matchDirectPath(p1, corner2) && matchDirectPath(corner2, p2)) {
+                return [p1, corner2, p2];
+            }
+            return null;
+        }
+
+        // 2折连通 (通过两个拐角)
+        function matchTwoCornerPath(p1, p2) {
+            // 向上扫描射线
+            for (let r = p1.r - 1; r >= 0; r--) {
+                if (!isClear(r, p1.c)) break;
+                let cPath = matchOneCornerPath({ r, c: p1.c }, p2);
+                if (cPath) return [p1, ...cPath];
+            }
+            // 向下扫描射线
+            for (let r = p1.r + 1; r < LOGICAL_ROWS; r++) {
+                if (!isClear(r, p1.c)) break;
+                let cPath = matchOneCornerPath({ r, c: p1.c }, p2);
+                if (cPath) return [p1, ...cPath];
+            }
+            // 向左扫描射线
+            for (let c = p1.c - 1; c >= 0; c--) {
+                if (!isClear(p1.r, c)) break;
+                let cPath = matchOneCornerPath({ r: p1.r, c }, p2);
+                if (cPath) return [p1, ...cPath];
+            }
+            // 向右扫描射线
+            for (let c = p1.c + 1; c < LOGICAL_COLS; c++) {
+                if (!isClear(p1.r, c)) break;
+                let cPath = matchOneCornerPath({ r: p1.r, c }, p2);
+                if (cPath) return [p1, ...cPath];
+            }
+            return null;
+        }
+    </script>
+</body>
+</html>

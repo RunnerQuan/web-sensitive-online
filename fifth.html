@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 强制移动端适配：禁止缩放，固定视口 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>抓梗鹅 </title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'quirky': ['"ZCOOL KuaiLe"', 'cursive', 'sans-serif'],
+                    },
+                    animation: {
+                        'pop-in': 'popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        'shake-error': 'shake 0.4s ease-in-out',
+                        'eliminate': 'eliminate 0.4s ease-out forwards',
+                        'wiggle': 'wiggle 1s ease-in-out infinite',
+                        'spin-slow': 'spin 4s linear infinite',
+                        'float-up': 'floatUp 0.8s ease-out forwards',
+                        'flash-red': 'flashRed 0.5s ease-out',
+                        'squish': 'squish 2s ease-in-out infinite',
+                        'stroll': 'stroll 2s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        popIn: {
+                            '0%': { transform: 'scale(0.5)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '25%': { transform: 'translateX(-4px) rotate(-3deg)' },
+                            '50%': { transform: 'translateX(4px) rotate(3deg)' },
+                            '75%': { transform: 'translateX(-4px) rotate(-3deg)' },
+                        },
+                        eliminate: {
+                            '0%': { transform: 'scale(1)', opacity: '1' },
+                            '50%': { transform: 'scale(1.2)', filter: 'brightness(1.5)' },
+                            '100%': { transform: 'scale(0)', opacity: '0' },
+                        },
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-10deg)' },
+                            '50%': { transform: 'rotate(10deg)' },
+                        },
+                        floatUp: {
+                            '0%': { transform: 'translateY(0) scale(0.8)', opacity: '1' },
+                            '100%': { transform: 'translateY(-50px) scale(1.2)', opacity: '0' },
+                        },
+                        flashRed: {
+                            '0%': { boxShadow: 'inset 0 0 0 0 rgba(239, 68, 68, 0)' },
+                            '20%': { boxShadow: 'inset 0 0 20px 10px rgba(239, 68, 68, 0.5)' },
+                            '100%': { boxShadow: 'inset 0 0 0 0 rgba(239, 68, 68, 0)' },
+                        },
+                        squish: {
+                            '0%, 100%': { transform: 'scaleY(1) scaleX(1)' },
+                            '50%': { transform: 'scaleY(0.8) scaleX(1.1) translateY(4px)' },
+                        },
+                        stroll: {
+                            '0%, 100%': { transform: 'rotate(-5deg) translateY(0)' },
+                            '25%': { transform: 'rotate(5deg) translateY(-3px)' },
+                            '50%': { transform: 'rotate(-5deg) translateY(0)' },
+                            '75%': { transform: 'rotate(5deg) translateY(-3px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.95)), url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            /* 阻止移动端默认行为，如下拉刷新等 */
+            overscroll-behavior-y: contain; 
+            touch-action: none; 
+        }
+        
+        /* 移动端主界面限制在安全区域内，最大宽度保持，像一个小程序 */
+        .mobile-container {
+            max-width: 430px; /* 适配大屏手机，如 Pro Max */
+            margin: 0 auto;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+
+        .item-card {
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+            /* 专为手机端缩小的卡片尺寸 */
+            width: 80px; 
+            height: 96px;
+        }
+        
+        .item-card:active {
+            transform: scale(0.9) !important;
+        }
+
+        .pile-container {
+            perspective: 1000px;
+        }
+
+        /* 卡片立体感 */
+        .card-3d {
+            box-shadow: 0 6px 0px rgba(0,0,0,0.15), 0 8px 15px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.9);
+            border-bottom-width: 3px;
+        }
+        .card-3d-trap {
+            box-shadow: 0 6px 0px #475569, 0 8px 15px rgba(0,0,0,0.25);
+            border: 2px solid #94a3b8;
+            border-bottom-width: 3px;
+            background-image: linear-gradient(to bottom, #f1f5f9, #cbd5e1);
+        }
+
+        /* 图标阴影 */
+        .entity-icon {
+            filter: drop-shadow(0px 6px 3px rgba(0,0,0,0.25));
+        }
+        .trap-icon {
+            filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.4)) grayscale(0.5);
+        }
+    </style>
+</head>
+<body class="h-[100dvh] w-full font-quirky text-gray-800 bg-gray-100 relative">
+
+    <!-- 移动端外框容器 -->
+    <div class="mobile-container w-full h-full relative flex flex-col bg-white/40 backdrop-blur-md overflow-hidden">
+
+        <!-- Screen 1: Start Screen -->
+        <div id="start-screen" class="absolute inset-0 z-50 flex flex-col justify-center items-center bg-yellow-300/95 backdrop-blur-md px-4">
+            <h1 class="text-5xl md:text-6xl font-bold text-orange-600 mb-6 animate-bounce drop-shadow-xl text-center leading-tight">
+                抓梗鹅
+            </h1>
+            <p class="text-sm md:text-base text-orange-800 mb-8 w-full max-w-[300px] text-center font-sans font-bold bg-white/60 p-4 rounded-2xl shadow-inner leading-relaxed">
+                ✨ 抓出 3 个相同的【真·热梗】<br>
+                ⚠️ 避开生硬冷酷的【职场黑话】<br>
+                <span class="text-xs text-orange-600 mt-1 block">黑话会死磕你的工位，无法消除！</span>
+            </p>
+            <button onclick="startGame()" class="w-full max-w-[240px] py-4 bg-gradient-to-b from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 active:translate-y-2 text-white text-2xl rounded-full shadow-[0_8px_0_#9a3412] hover:shadow-[0_4px_0_#9a3412] transition-all">
+                马上开抓 🎮
+            </button>
+        </div>
+
+        <!-- Screen 2: Game Screen -->
+        <div id="game-screen" class="hidden w-full h-full relative flex flex-col transition-all duration-300">
+            
+            <!-- Header: Timer & Score -->
+            <div class="flex justify-between items-center p-3 md:p-4 bg-white/90 border-b-2 border-gray-200 z-20 shadow-sm rounded-b-2xl">
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-gray-500 font-sans font-bold uppercase tracking-wider">倒计时</span>
+                    <div class="flex items-center text-red-500 text-2xl font-bold">
+                        <i class="fa-solid fa-stopwatch mr-1.5 animate-pulse text-lg"></i>
+                        <span id="timer-display">60</span><span class="text-sm">s</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] text-gray-500 font-sans font-bold uppercase tracking-wider">快乐指数</span>
+                    <div class="text-yellow-500 text-2xl font-bold">
+                        <i class="fa-solid fa-fire mr-1 text-lg"></i><span id="score-display">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 进度条 -->
+            <div class="w-full bg-gray-200 h-1.5">
+                <div id="progress-bar" class="bg-gradient-to-r from-orange-400 to-red-500 h-1.5 transition-all duration-1000 ease-linear" style="width: 100%"></div>
+            </div>
+
+            <!-- Play Area (The Pile) -->
+            <div id="pile-area" class="flex-1 relative w-full overflow-hidden pile-container touch-none">
+                <!-- Items will be injected here via JS -->
+            </div>
+
+            <!-- Props / Skills Area (调整到槽位右上方，防止遮挡槽位) -->
+            <div class="absolute right-3 bottom-[130px] flex flex-col gap-3 z-30">
+                <button onclick="usePropShuffle()" class="w-12 h-12 bg-blue-500 text-white rounded-full shadow-[0_4px_0_#1e3a8a] flex items-center justify-center text-xl active:translate-y-1 active:shadow-[0_0px_0_#1e3a8a] transition-all" title="已读乱回">
+                    <i class="fa-solid fa-shuffle"></i>
+                </button>
+                <button onclick="usePropCleanse()" class="w-12 h-12 bg-red-500 text-white rounded-full shadow-[0_4px_0_#991b1b] flex items-center justify-center text-xl active:translate-y-1 active:shadow-[0_0px_0_#991b1b] transition-all" title="整顿职场">
+                    <i class="fa-solid fa-hammer"></i>
+                </button>
+            </div>
+
+            <!-- Slots Area (高度精简，完美适配7张卡) -->
+            <div class="h-[120px] bg-slate-800/95 rounded-t-2xl p-2.5 flex flex-col justify-end z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.2)] border-t-2 border-slate-600">
+                <div class="flex justify-between items-end mb-1.5 px-1">
+                    <div class="text-slate-300 text-xs font-sans font-bold"><i class="fa-solid fa-desktop mr-1"></i> 我的工位</div>
+                    <div class="text-slate-400 text-[10px] font-sans font-bold bg-slate-900 px-2 py-0.5 rounded">已占: <span id="slot-count" class="text-white">0</span>/7</div>
+                </div>
+                
+                <!-- Slots Container -->
+                <!-- 重点：去掉 gap，使用 space-x 或者精确的 padding，确保 7 张卡能在屏幕内完全展现 -->
+                <div class="bg-slate-900 rounded-lg p-1.5 flex justify-between h-[68px] w-full border-t border-slate-700 shadow-inner overflow-hidden relative">
+                    <div id="slots-container" class="flex justify-start w-full h-full gap-1 items-center px-0.5">
+                        <!-- Slotted items injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 3: Result Overlay -->
+        <div id="result-screen" class="hidden absolute inset-0 z-50 flex justify-center items-center bg-black/70 backdrop-blur-sm px-4">
+            <div class="bg-white p-6 rounded-3xl shadow-2xl text-center w-full max-w-[320px] border-4 border-yellow-400 relative animate-pop-in">
+                <div id="result-icon" class="text-6xl mb-2 absolute -top-10 left-1/2 -translate-x-1/2 bg-white rounded-full p-1.5 border-4 border-yellow-400 shadow-md">
+                    🏆
+                </div>
+                
+                <h2 id="result-title" class="text-3xl font-bold text-orange-600 mt-6 mb-1">通关成功</h2>
+                <p id="result-subtitle" class="text-lg text-gray-600 mb-4 font-sans font-bold">冲浪体检报告</p>
+                
+                <div class="bg-slate-50 p-3 rounded-xl mb-5 text-left font-sans text-sm text-slate-700 border border-slate-200">
+                    <p class="flex justify-between items-center mb-2">
+                        <span>最终得分:</span> 
+                        <span id="final-score" class="font-bold text-orange-500 text-2xl">0</span>
+                    </p>
+                    <div class="h-px bg-slate-200 w-full mb-2"></div>
+                    <p class="text-[11px] text-slate-500 leading-snug" id="result-desc">你的精神状态极佳！</p>
+                </div>
+
+                <button onclick="resetGame()" class="w-full py-3 bg-gradient-to-b from-green-400 to-green-600 active:translate-y-1 text-white text-xl font-bold rounded-xl shadow-[0_4px_0_#166534] transition-all">
+                    再来一局 🔄
+                </button>
+            </div>
+        </div>
+
+        <!-- Feedback Container -->
+        <div id="feedback-container" class="absolute inset-0 pointer-events-none z-[100] overflow-hidden"></div>
+
+    </div>
+
+    <script>
+        // --- Data: 删除了小羊，新增了【背手负鼠】 ---
+        const MEMES = [
+            { id: 'm1', type: 'meme', name: '哈基米', emoji: '😺', bg: 'bg-orange-50', border: 'border-orange-400', text: 'text-orange-700', animClass: 'animate-wiggle' },
+            { id: 'm2', type: 'meme', name: '无力维持人形', emoji: '🫠', bg: 'bg-purple-50', border: 'border-purple-400', text: 'text-purple-700', animClass: 'animate-squish' },
+            { id: 'm3', type: 'meme', name: '皮质醇降低中', emoji: '🧘', bg: 'bg-green-50', border: 'border-green-400', text: 'text-green-700', animClass: '' },
+            { id: 'm4', type: 'meme', name: '不舒服文学', emoji: '🤕', bg: 'bg-blue-50', border: 'border-blue-400', text: 'text-blue-700', animClass: '' },
+            { id: 'm5', type: 'meme', name: '背手负鼠', emoji: '🐭', bg: 'bg-pink-50', border: 'border-pink-400', text: 'text-pink-700', animClass: 'animate-stroll' }, // 🆕 新增背手负鼠
+        ];
+
+        const JARGONS = [
+            { id: 'j1', type: 'trap', name: '高级产品思维', emoji: '🧠', text: 'text-slate-800', animClass: '' },
+            { id: 'j2', type: 'trap', name: '赋能闭环', emoji: '♾️', text: 'text-slate-800', animClass: 'animate-spin-slow' },
+            { id: 'j3', type: 'trap', name: '颗粒度对齐', emoji: '🔎', text: 'text-slate-800', animClass: '' },
+            { id: 'j4', type: 'trap', name: '战略协同', emoji: '🤝', text: 'text-slate-800', animClass: '' },
+            { id: 'j5', type: 'trap', name: '抓手沉淀', emoji: '🦾', text: 'text-slate-800', animClass: '' },
+        ];
+
+        const TOTAL_MEME_SETS = 8; // 8 sets of 3 memes = 24 items
+        const TOTAL_TRAPS = 6;     // 适度减少一个黑话，降低移动端拥挤度
+        const GAME_TIME = 60;      // Seconds
+        const SLOT_CAPACITY = 7;
+
+        // --- Game State ---
+        let pile = [];
+        let slots = [];
+        let score = 0;
+        let timeRemaining = GAME_TIME;
+        let timerInterval = null;
+        let isProcessingMatch = false;
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const pileArea = document.getElementById('pile-area');
+        const slotsContainer = document.getElementById('slots-container');
+        const timerDisplay = document.getElementById('timer-display');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreDisplay = document.getElementById('score-display');
+        const slotCountDisplay = document.getElementById('slot-count');
+        const feedbackContainer = document.getElementById('feedback-container');
+
+        // --- Initialization ---
+        function startGame() {
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            initGameState();
+            generatePile();
+            renderPile();
+            renderSlots();
+            startTimer();
+        }
+
+        function resetGame() {
+            resultScreen.classList.add('hidden');
+            initGameState();
+            generatePile();
+            renderPile();
+            renderSlots();
+            startTimer();
+        }
+
+        function initGameState() {
+            pile = [];
+            slots = [];
+            score = 0;
+            timeRemaining = GAME_TIME;
+            isProcessingMatch = false;
+            updateScoreUI();
+            updateTimerUI();
+            pileArea.innerHTML = '';
+            slotsContainer.innerHTML = '';
+            feedbackContainer.innerHTML = '';
+        }
+
+        function generatePile() {
+            for (let i = 0; i < TOTAL_MEME_SETS; i++) {
+                const randomMeme = MEMES[Math.floor(Math.random() * MEMES.length)];
+                for (let j = 0; j < 3; j++) {
+                    pile.push({
+                        ...randomMeme,
+                        uid: `meme_${i}_${j}_${Date.now()}`,
+                        // 约束生成范围，避免在手机小屏幕边缘溢出
+                        posX: 8 + Math.random() * 64, 
+                        posY: 2 + Math.random() * 70,
+                        rotation: -25 + Math.random() * 50,
+                        zIndex: Math.floor(Math.random() * 100)
+                    });
+                }
+            }
+
+            for (let i = 0; i < TOTAL_TRAPS; i++) {
+                const randomTrap = JARGONS[Math.floor(Math.random() * JARGONS.length)];
+                pile.push({
+                    ...randomTrap,
+                    uid: `trap_${i}_${Date.now()}`,
+                    posX: 8 + Math.random() * 64,
+                    posY: 2 + Math.random() * 70,
+                    rotation: -25 + Math.random() * 50,
+                    zIndex: Math.floor(Math.random() * 100)
+                });
+            }
+            pile.sort(() => Math.random() - 0.5);
+        }
+
+        function renderPile() {
+            pileArea.innerHTML = '';
+            pile.forEach(item => {
+                const el = document.createElement('div');
+                el.id = item.uid;
+                
+                const isTrap = item.type === 'trap';
+                const cardClass = isTrap ? 'card-3d-trap text-slate-800' : `card-3d ${item.bg} ${item.border} ${item.text}`;
+                const iconClass = isTrap ? 'trap-icon' : 'entity-icon';
+
+                el.className = `absolute item-card flex flex-col items-center justify-center p-1 rounded-xl cursor-pointer ${cardClass}`;
+                el.style.left = `${item.posX}%`;
+                el.style.top = `${item.posY}%`;
+                el.style.transform = `rotate(${item.rotation}deg)`;
+                el.style.zIndex = item.zIndex;
+
+                // 针对手机端稍微调小了字号，保留紧凑排版
+                el.innerHTML = `
+                    <div class="text-[36px] leading-none mb-1 ${item.animClass} ${iconClass}">
+                        ${item.emoji}
+                    </div>
+                    <div class="text-[10px] font-sans font-bold leading-tight text-center w-full px-1 break-words line-clamp-2">
+                        ${item.name}
+                    </div>
+                `;
+
+                // 兼容移动端触摸
+                el.onpointerdown = (e) => handleItemClick(item.uid, e);
+
+                pileArea.appendChild(el);
+            });
+        }
+
+        // --- Core Interactions ---
+        function handleItemClick(uid, event) {
+            // 防止拖拽等行为干扰
+            event.preventDefault();
+            
+            if (isProcessingMatch) return;
+            if (slots.length >= SLOT_CAPACITY) return; 
+
+            const itemIndex = pile.findIndex(i => i.uid === uid);
+            if (itemIndex === -1) return;
+            
+            const item = pile[itemIndex];
+            
+            const clickX = event.clientX || window.innerWidth / 2;
+            const clickY = event.clientY || window.innerHeight / 2;
+            showClickFeedback(clickX, clickY, item.type);
+
+            pile.splice(itemIndex, 1);
+            const domEl = document.getElementById(uid);
+            if (domEl) domEl.remove();
+
+            slots.push(item);
+            
+            slots.sort((a, b) => {
+                if (a.type === 'trap' && b.type !== 'trap') return 1;
+                if (b.type === 'trap' && a.type !== 'trap') return -1;
+                return a.id.localeCompare(b.id);
+            });
+
+            renderSlots();
+            checkMatches();
+        }
+
+        function showClickFeedback(x, y, type) {
+            const fbEl = document.createElement('div');
+            fbEl.className = 'absolute font-quirky font-bold text-xl md:text-2xl animate-float-up whitespace-nowrap drop-shadow-md';
+            
+            const rect = document.querySelector('.mobile-container').getBoundingClientRect();
+            const relX = x - rect.left;
+            const relY = y - rect.top;
+
+            fbEl.style.left = `${relX - 20}px`;
+            fbEl.style.top = `${relY - 20}px`;
+
+            if (type === 'meme') {
+                fbEl.innerHTML = '✨ Get!';
+                fbEl.className += ' text-green-500';
+            } else {
+                fbEl.innerHTML = '❌ 染上班味!';
+                fbEl.className += ' text-red-600';
+                
+                const screen = document.querySelector('.mobile-container');
+                screen.classList.remove('animate-flash-red');
+                void screen.offsetWidth;
+                screen.classList.add('animate-flash-red');
+            }
+
+            feedbackContainer.appendChild(fbEl);
+
+            setTimeout(() => {
+                if (fbEl.parentNode) fbEl.remove();
+            }, 800);
+        }
+
+        function renderSlots() {
+            slotsContainer.innerHTML = '';
+            slotCountDisplay.innerText = slots.length;
+
+            if (slots.length >= SLOT_CAPACITY) {
+                slotCountDisplay.classList.add('text-red-400', 'animate-pulse');
+            } else {
+                slotCountDisplay.classList.remove('text-red-400', 'animate-pulse');
+            }
+
+            slots.forEach((item) => {
+                const el = document.createElement('div');
+                const isTrap = item.type === 'trap';
+                const baseStyle = isTrap ? 'bg-slate-300 border-slate-500 text-slate-800 grayscale-[0.3]' : `${item.bg} border border-b-2 ${item.border} ${item.text}`;
+                
+                // 核心缩放：确保 7 张卡在狭窄屏幕内排布得下
+                // 计算：375px 屏幕宽度，容器内部约 340px，7张卡平分约 44px 宽一张
+                el.className = `flex-shrink-0 flex flex-col items-center justify-center rounded-lg w-[calc(14.28%-2px)] h-[56px] animate-pop-in ${baseStyle} relative overflow-hidden shadow-sm`;
+                el.id = `slot_${item.uid}`;
+                
+                const trapBg = isTrap ? `<div class="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_4px,#000_4px,#000_8px)]"></div>` : '';
+
+                // 文字进行了特殊缩放 (scale) 处理，防止在小格子里换行溢出
+                el.innerHTML = `
+                    ${trapBg}
+                    <div class="text-xl md:text-2xl z-10 drop-shadow-sm mt-0.5">${item.emoji}</div>
+                    <div class="text-[8px] font-sans font-bold text-center leading-tight mt-1 w-full px-0.5 truncate z-10 scale-90 origin-top">
+                        ${item.name}
+                    </div>
+                `;
+                slotsContainer.appendChild(el);
+            });
+        }
+
+        async function checkMatches() {
+            const counts = {};
+            slots.forEach(item => {
+                if (item.type === 'meme') {
+                    counts[item.id] = (counts[item.id] || 0) + 1;
+                }
+            });
+
+            let matchedId = null;
+            for (const id in counts) {
+                if (counts[id] >= 3) {
+                    matchedId = id;
+                    break;
+                }
+            }
+
+            if (matchedId) {
+                isProcessingMatch = true;
+                
+                const itemsToRemove = slots.filter(i => i.id === matchedId).slice(0, 3);
+                itemsToRemove.forEach(item => {
+                    const el = document.getElementById(`slot_${item.uid}`);
+                    if (el) {
+                        el.classList.remove('animate-pop-in');
+                        el.classList.add('animate-eliminate');
+                    }
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 400));
+
+                let removedCount = 0;
+                slots = slots.filter(item => {
+                    if (item.id === matchedId && removedCount < 3) {
+                        removedCount++;
+                        return false;
+                    }
+                    return true;
+                });
+
+                score += 100;
+                timeRemaining = Math.min(GAME_TIME, timeRemaining + 3); 
+                updateScoreUI();
+                updateTimerUI();
+                
+                renderSlots();
+                isProcessingMatch = false;
+
+                checkWin();
+            } else {
+                if (slots.length >= SLOT_CAPACITY) {
+                    const allTraps = slots.every(i => i.type === 'trap');
+                    endGame(false, allTraps ? "工位已完全被黑话吞噬" : "工位爆满，理不清逻辑");
+                }
+            }
+        }
+
+        function checkWin() {
+            const hasMemesInPile = pile.some(i => i.type === 'meme');
+            const hasMemesInSlots = slots.some(i => i.type === 'meme');
+            
+            if (!hasMemesInPile && !hasMemesInSlots) {
+                endGame(true, "成功清空所有热梗");
+            }
+        }
+
+        // --- Props (Skills) ---
+        function usePropShuffle() {
+            pile.forEach(item => {
+                item.posX = 8 + Math.random() * 64;
+                item.posY = 2 + Math.random() * 70;
+                item.rotation = -25 + Math.random() * 50;
+                item.zIndex = Math.floor(Math.random() * 100);
+            });
+            renderPile();
+            
+            pileArea.classList.add('opacity-50', 'scale-95');
+            setTimeout(() => pileArea.classList.remove('opacity-50', 'scale-95'), 150);
+        }
+
+        function usePropCleanse() {
+            const originalLength = slots.length;
+            slots = slots.filter(item => item.type !== 'trap');
+            
+            if (originalLength !== slots.length) {
+                renderSlots();
+                slotsContainer.classList.add('border-green-400', 'bg-green-900/50');
+                setTimeout(() => slotsContainer.classList.remove('border-green-400', 'bg-green-900/50'), 500);
+                score += 50; 
+                updateScoreUI();
+            } else {
+                slotsContainer.classList.add('animate-shake-error');
+                setTimeout(() => slotsContainer.classList.remove('animate-shake-error'), 400);
+            }
+        }
+
+        // --- Game Loop & Logic ---
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerUI();
+                
+                if (timeRemaining <= 0) {
+                    endGame(false, "下班时间到，KPI未达标");
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            timerDisplay.innerText = timeRemaining;
+            const percent = (timeRemaining / GAME_TIME) * 100;
+            progressBar.style.width = `${percent}%`;
+            
+            if (timeRemaining <= 10) {
+                timerDisplay.classList.add('text-red-600', 'scale-110');
+            } else {
+                timerDisplay.classList.remove('text-red-600', 'scale-110');
+            }
+        }
+
+        function updateScoreUI() {
+            scoreDisplay.innerText = score;
+        }
+
+        function endGame(isWin, reason) {
+            clearInterval(timerInterval);
+            
+            const titleEl = document.getElementById('result-title');
+            const subTitleEl = document.getElementById('result-subtitle');
+            const iconEl = document.getElementById('result-icon');
+            const descEl = document.getElementById('result-desc');
+            const finalScoreEl = document.getElementById('final-score');
+            
+            finalScoreEl.innerText = score;
+
+            if (isWin) {
+                iconEl.innerText = '🏄';
+                titleEl.innerText = '通关成功！';
+                titleEl.className = 'text-3xl font-bold text-green-500 mt-6 mb-1';
+                subTitleEl.innerText = '5G冲浪泰斗';
+                descEl.innerHTML = `达成：${reason}<br>你的精神状态遥遥领先，没有任何职场黑话能禁锢你！奖励一朵小花花🌸！`;
+            } else {
+                iconEl.innerText = '💼';
+                titleEl.innerText = '游戏失败';
+                titleEl.className = 'text-3xl font-bold text-slate-600 mt-6 mb-1';
+                subTitleEl.innerText = '班味重度患者';
+                descEl.innerHTML = `死因：${reason}<br>你已被PPT腌入味。建议立即申请带薪拉屎，补充哈基米能量！`;
+            }
+
+            resultScreen.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

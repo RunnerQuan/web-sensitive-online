@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>哈基抖</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
   <style>
     :root {
       --bg: #06070d;
@@ -138,7 +139,11 @@
     }
 
     .brand-icon {
-      font-size: 18px;
+      width: 30px;
+      height: 30px;
+      display: inline-block;
+      object-fit: contain;
+      flex: 0 0 auto;
     }
 
     .brand-name {
@@ -1296,6 +1301,366 @@
       font-size: 12px;
     }
 
+    .fifth-root,
+    .sixth-root,
+    .seventh-root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .fifth-root {
+      background: linear-gradient(180deg, #fff5bf 0%, #fffaf0 100%);
+      color: #1f2937;
+    }
+
+    .fifth-root .game-caption h2,
+    .fifth-root .game-caption p {
+      color: #111827;
+      text-shadow: none;
+    }
+
+    .fifth-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 100%;
+      min-height: 0;
+      padding: 10px 10px 118px;
+    }
+
+    .fifth-hud,
+    .sixth-hud,
+    .seventh-hud {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex: 0 0 auto;
+    }
+
+    .fifth-panel,
+    .sixth-panel,
+    .seventh-panel {
+      border-radius: 22px;
+      border: 2px solid rgba(17, 24, 39, 0.12);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 16px 28px rgba(0, 0, 0, 0.08);
+    }
+
+    .fifth-stage {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 244, 208, 0.9));
+    }
+
+    .fifth-pile {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .fifth-item {
+      position: absolute;
+      width: 76px;
+      height: 92px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      border: 2px solid rgba(17, 24, 39, 0.9);
+      box-shadow: 0 7px 0 rgba(17, 24, 39, 0.2), 0 14px 20px rgba(0, 0, 0, 0.08);
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: pointer;
+      transform-origin: center center;
+    }
+
+    .fifth-item .icon {
+      font-size: 34px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .fifth-item .name {
+      font-size: 10px;
+      line-height: 1.15;
+      text-align: center;
+      padding: 0 4px;
+    }
+
+    .fifth-slots {
+      flex: 0 0 auto;
+      height: 86px;
+      padding: 6px 8px 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .fifth-slots .fifth-panel {
+      padding: 5px 6px 6px !important;
+      background: rgba(255, 252, 238, 0.92) !important;
+      border: 1px solid rgba(17, 24, 39, 0.1);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+      color: #334155;
+    }
+
+    .fifth-slot-bar {
+      height: 52px;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      overflow: hidden;
+      background: rgba(255, 250, 235, 0.92);
+    }
+
+    .fifth-slot {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-size: 10px;
+      line-height: 1;
+      overflow: hidden;
+    }
+
+    .fifth-slot .icon {
+      font-size: 14px;
+      margin-bottom: 1px;
+    }
+
+    .fifth-start,
+    .fifth-result,
+    .sixth-start,
+    .sixth-result,
+    .seventh-home,
+    .seventh-result {
+      position: absolute;
+      inset: 0;
+      z-index: 120;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(255, 250, 235, 0.94);
+    }
+
+    .fifth-result,
+    .sixth-result,
+    .seventh-result {
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff;
+      z-index: 200;
+    }
+
+    .fifth-score {
+      min-width: 82px;
+      padding: 8px 10px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 2px solid rgba(17, 24, 39, 0.12);
+    }
+
+    .fifth-feedback {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 20;
+    }
+
+    .fifth-float {
+      position: absolute;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      animation: float-up 0.8s ease forwards;
+    }
+
+    .sixth-root {
+      background: #fff9e6;
+      color: #20343d;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sixth-stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 247, 214, 0.96));
+    }
+
+    .sixth-area {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .sixth-warning {
+      position: absolute;
+      top: 15%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: repeating-linear-gradient(90deg, #ff4d4f, #ff4d4f 10px, transparent 10px, transparent 20px);
+      z-index: 3;
+      opacity: 0.3;
+    }
+
+    .sixth-warning.danger {
+      opacity: 1;
+      animation: pulseWarning 0.5s infinite alternate;
+    }
+
+    .sixth-fruit {
+      position: absolute;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 4;
+      box-shadow: inset -3px -3px 10px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15);
+      transform-origin: center center;
+      will-change: top, left, transform;
+    }
+
+    .sixth-preview {
+      position: absolute;
+      z-index: 6;
+      opacity: 0.8;
+    }
+
+    .sixth-aim-line {
+      position: absolute;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.1);
+      border-left: 2px dashed rgba(0, 0, 0, 0.2);
+      pointer-events: none;
+      z-index: 2;
+      transform: translateX(-50%);
+      display: none;
+    }
+
+    .sixth-overlay,
+    .seventh-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .sixth-board,
+    .seventh-board {
+      width: 100%;
+      height: 100%;
+    }
+
+    .seventh-root {
+      background: #e0e7ff;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .seventh-stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+      border-radius: 24px;
+      background: #f8fbff;
+    }
+
+    .seventh-board {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 6px;
+      padding: 8px;
+      background: #fef08a;
+      border: 4px solid #111827;
+      border-radius: 18px;
+      box-shadow: 6px 6px 0 #111827;
+      aspect-ratio: 8 / 10;
+      overflow: hidden;
+    }
+
+    .seventh-tile {
+      border: 3px solid #111827;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 3px 3px 0 #111827;
+      transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(18px, 3.6vw, 30px);
+      aspect-ratio: 1;
+      min-width: 0;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .seventh-tile.selected {
+      background: #f472b6;
+      color: #fff;
+      transform: translate(3px, 3px) scale(0.95);
+      box-shadow: 0 0 0 #111827;
+    }
+
+    .seventh-tile.matched {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0);
+    }
+
+    .seventh-tile.hidden-path {
+      opacity: 0;
+      pointer-events: none;
+      border: none;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .seventh-line-svg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 6;
+    }
+
     @media (max-width: 430px) {
       .game-shell {
         width: 100%;
@@ -1353,6 +1718,31 @@
         right: calc(90px + var(--safe-right));
         bottom: calc(20px + var(--safe-bottom));
       }
+
+      .fifth-shell {
+        padding: 8px 8px 126px;
+      }
+
+      .fifth-item {
+        width: 68px;
+        height: 82px;
+      }
+
+      .fifth-slots {
+        height: 82px;
+        padding: 4px 6px 6px;
+      }
+
+      .fifth-slot-bar {
+        height: 48px;
+        padding: 4px;
+      }
+
+      .seventh-board {
+        gap: 4px;
+        padding: 6px;
+      }
+
     }
   </style>
 </head>
@@ -1360,7 +1750,7 @@
   <div id="app" class="hakidou-app">
     <header class="app-topbar">
       <div class="brand">
-        <span class="brand-icon">🐱</span>
+        <img class="brand-icon" src="./assets/images/logo.png" alt="logo">
         <span class="brand-name">哈基抖</span>
       </div>
       <div class="progress-pill" id="currentIndexText">第 1 刷</div>
@@ -1378,6 +1768,15 @@
       </section>
       <section class="game-slide" data-index="3" data-game-id="beans">
         <div class="game-shell"><div class="game-shell-inner" id="game-beans"></div></div>
+      </section>
+      <section class="game-slide" data-index="4" data-game-id="fifth">
+        <div class="game-shell"><div class="game-shell-inner" id="game-fifth"></div></div>
+      </section>
+      <section class="game-slide" data-index="5" data-game-id="sixth">
+        <div class="game-shell"><div class="game-shell-inner" id="game-sixth"></div></div>
+      </section>
+      <section class="game-slide" data-index="6" data-game-id="seventh">
+        <div class="game-shell"><div class="game-shell-inner" id="game-seventh"></div></div>
       </section>
     </main>
 
@@ -1463,18 +1862,51 @@
           "绿豆 +10 分，红豆 -8 分。",
           "结果页会停留在当前屏，想继续就上滑。"
         ]
+      },
+      {
+        id: "fifth",
+        title: "抓梗鹅",
+        desc: "抓热梗、避黑话，三连就能清台。",
+        rule: [
+          "点击牌堆里的热梗，把相同梗尽量凑成三连。",
+          "别让黑话塞满槽位，不然会被工位反杀。",
+          "抓完所有热梗即可通关，剩余时间会转成额外分数。"
+        ]
+      },
+      {
+        id: "sixth",
+        title: "合成大奶龙",
+        desc: "拖动投放小奶龙，撞出更大的龙。",
+        rule: [
+          "拖动投放预览球，碰到相同等级会合成升级。",
+          "顶部警戒线亮红就代表快要顶住了。",
+          "堆得越高分越多，顶爆就结束。"
+        ]
+      },
+      {
+        id: "seventh",
+        title: "多巴胺连连看",
+        desc: "在限时内配对图标，清掉整张棋盘。",
+        rule: [
+          "先点一个，再找同图标配对。",
+          "最多只有 3 次重排机会。",
+          "在时间耗尽前清空棋盘就算赢。"
+        ]
       }
     ];
+
+    function createInitialGames() {
+      const games = {};
+      FEED_META.forEach((meta) => {
+        games[meta.id] = createEmptyGameState();
+      });
+      return games;
+    }
 
     const AppState = {
       currentIndex: 0,
       likes: 0,
-      games: {
-        quiz: createEmptyGameState(),
-        twist: createEmptyGameState(),
-        wangma: createEmptyGameState(),
-        beans: createEmptyGameState()
-      }
+      games: createInitialGames()
     };
 
     function createEmptyGameState() {
@@ -1508,7 +1940,10 @@
       quiz: createQuizGame,
       twist: createTwistGame,
       wangma: createWangmaGame,
-      beans: createBeansGame
+      beans: createBeansGame,
+      fifth: createFifthGame,
+      sixth: createSixthGame,
+      seventh: createSeventhGame
     };
 
     const gameInstances = new Map();
@@ -1743,7 +2178,7 @@
       });
       closeModal();
       goToSlide(0);
-      showFloatText("四刷已清空");
+      showFloatText("全部刷游已清空");
       persistState();
     }
 
@@ -1755,8 +2190,8 @@
     }
 
     function computeFinalTitle(totalScore, completedCount, likes) {
-      if (completedCount >= 4 && totalScore >= 310) return "刷游区天选之猫";
-      if (totalScore >= 250) return "高浓度网感幸存者";
+      if (completedCount >= FEED_META.length) return totalScore >= 1200 ? "刷游区全冠王" : "刷游区全通者";
+      if (totalScore >= 650) return "高浓度网感幸存者";
       if (likes >= 8) return "不拧巴哈基米";
       if (completedCount <= 1) return "抽象但能赢";
       return "赛博命格稳定发挥者";
@@ -1811,6 +2246,1160 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
+    }
+
+    function createFifthGame(container, context) {
+      const MEMES = [
+        { id: "m1", type: "meme", name: "哈基米", emoji: "😺", bg: "#ffedd5", color: "#c2410c" },
+        { id: "m2", type: "meme", name: "无力维持人形", emoji: "🫠", bg: "#ede9fe", color: "#6d28d9" },
+        { id: "m3", type: "meme", name: "皮质醇降低中", emoji: "🧘", bg: "#dcfce7", color: "#166534" },
+        { id: "m4", type: "meme", name: "不舒服文学", emoji: "🤕", bg: "#dbeafe", color: "#1d4ed8" },
+        { id: "m5", type: "meme", name: "背手负鼠", emoji: "🐭", bg: "#fce7f3", color: "#be185d" }
+      ];
+      const JARGONS = [
+        { id: "j1", type: "trap", name: "高级产品思维", emoji: "🧠", bg: "#e2e8f0", color: "#334155" },
+        { id: "j2", type: "trap", name: "赋能闭环", emoji: "♾️", bg: "#e2e8f0", color: "#334155" },
+        { id: "j3", type: "trap", name: "颗粒度对齐", emoji: "🔎", bg: "#e2e8f0", color: "#334155" },
+        { id: "j4", type: "trap", name: "战略协同", emoji: "🤝", bg: "#e2e8f0", color: "#334155" },
+        { id: "j5", type: "trap", name: "抓手沉淀", emoji: "🦾", bg: "#e2e8f0", color: "#334155" }
+      ];
+      const TOTAL_MEME_SETS = 8;
+      const TOTAL_TRAPS = 6;
+      const GAME_TIME = 60;
+      const SLOT_CAPACITY = 7;
+      let state = null;
+      let timer = null;
+      let refs = null;
+
+      function getInitialState() {
+        return {
+          phase: "intro",
+          pile: [],
+          slots: [],
+          score: 0,
+          timeRemaining: GAME_TIME,
+          startedAt: 0,
+          finished: false,
+          processing: false
+        };
+      }
+
+      function mount() {
+        container.className = "game-shell-inner fifth-root";
+        container.innerHTML = `
+          <div class="fifth-shell">
+            <div class="fifth-hud">
+              <div class="fifth-score">
+                <div style="font-size:10px;color:#64748b;font-weight:800;text-transform:uppercase;">Time</div>
+                <div data-time style="font-size:26px;font-weight:900;color:#ef4444;line-height:1;">60</div>
+              </div>
+              <div class="tag-list" style="justify-content:center;flex:1;min-width:0;">
+                <span class="tag" style="color:#171717;">抓热梗</span>
+                <span class="tag" style="color:#171717;">避黑话</span>
+                <span class="tag" style="color:#171717;">三连清台</span>
+              </div>
+              <div class="fifth-score" style="text-align:right;">
+                <div style="font-size:10px;color:#64748b;font-weight:800;text-transform:uppercase;">Score</div>
+                <div data-score style="font-size:26px;font-weight:900;color:#f97316;line-height:1;">0</div>
+              </div>
+            </div>
+            <div class="fifth-stage">
+              <div class="fifth-pile" data-pile></div>
+              <div class="fifth-feedback" data-feedback></div>
+              <div class="fifth-start" data-start>
+                <div class="game-panel fifth-panel" style="max-width:340px;padding:18px;text-align:center;">
+                  <p class="game-copy" style="margin:0;color:#92400e;font-weight:800;">抓梗鹅</p>
+                  <h2 class="game-heading" style="margin-top:6px;color:#1f2937;">热梗收纳挑战</h2>
+                  <p class="game-copy" style="margin-top:10px;">把热梗凑成三连，别让黑话把你的工位塞爆。最终分数会按剩余时间额外结算。</p>
+                  <div class="modal-actions" style="margin-top:16px;">
+                    <button class="game-button primary" data-start-btn style="background:linear-gradient(180deg,#fb923c,#ea580c);color:#fff;width:100%;">马上开抓 🎮</button>
+                  </div>
+                </div>
+              </div>
+              <div class="fifth-result" data-result style="display:none;">
+                <div class="game-panel fifth-panel" style="max-width:340px;padding:18px;text-align:center;">
+                  <div style="font-size:52px;">🏆</div>
+                  <h2 data-result-title style="margin:6px 0 4px;font-size:28px;">通关成功</h2>
+                  <p data-result-subtitle class="game-copy" style="color:#374151;">冲浪体检报告</p>
+                <div class="game-panel" style="margin-top:14px;padding:12px;text-align:left;">
+                    <p style="margin:0 0 8px;display:flex;justify-content:space-between;color:#111827;"><span>最终得分</span><strong data-final-score style="font-size:22px;color:#111827;">0</strong></p>
+                    <p data-result-desc style="margin:0;font-size:12px;line-height:1.5;color:#4b5563;">你的精神状态极佳！</p>
+                </div>
+                  <div class="modal-actions" style="margin-top:16px;">
+                    <button class="game-button primary" data-restart-btn style="background:linear-gradient(180deg,#4ade80,#16a34a);color:#fff;width:100%;">再来一局 🔄</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="fifth-slots">
+              <div class="game-panel fifth-panel" style="padding:6px;background:rgba(255,252,238,0.92);">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px 6px;color:#64748b;font-size:11px;font-weight:800;line-height:1.05;">
+                  <span>我的工位</span><span>已占: <b data-slot-count>0</b>/7</span>
+                </div>
+                <div class="fifth-slot-bar" data-slots></div>
+              </div>
+            </div>
+          </div>
+        `;
+        refs = {
+          time: container.querySelector("[data-time]"),
+          score: container.querySelector("[data-score]"),
+          pile: container.querySelector("[data-pile]"),
+          feedback: container.querySelector("[data-feedback]"),
+          start: container.querySelector("[data-start]"),
+          result: container.querySelector("[data-result]"),
+          resultTitle: container.querySelector("[data-result-title]"),
+          resultSubtitle: container.querySelector("[data-result-subtitle]"),
+          resultDesc: container.querySelector("[data-result-desc]"),
+          finalScore: container.querySelector("[data-final-score]"),
+          slotCount: container.querySelector("[data-slot-count]"),
+          slots: container.querySelector("[data-slots]")
+        };
+        refs.start.querySelector("[data-start-btn]").addEventListener("click", startGame);
+        refs.result.querySelector("[data-restart-btn]").addEventListener("click", reset);
+        state = getInitialState();
+        renderIntro();
+      }
+
+      function start() {
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+        if (!state) state = getInitialState();
+        renderIntro();
+      }
+
+      function pause() {
+        if (state && state.phase === "playing") {
+          clearTimer();
+          context.setStatus("paused");
+        }
+      }
+
+      function resume() {
+        if (state && state.phase === "playing") {
+          startTimer();
+          context.setStatus("playing");
+        }
+      }
+
+      function reset() {
+        clearTimer();
+        state = getInitialState();
+        renderIntro();
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+      }
+
+      function destroy() {
+        clearTimer();
+      }
+
+      function getState() {
+        return state;
+      }
+
+      function renderIntro() {
+        state.phase = "intro";
+        refs.start.style.display = "flex";
+        refs.result.style.display = "none";
+        refs.pile.innerHTML = "";
+        refs.slots.innerHTML = "";
+        refs.feedback.innerHTML = "";
+        updateHud();
+      }
+
+      function startGame() {
+        clearTimer();
+        state = getInitialState();
+        state.phase = "playing";
+        context.setSummary({ status: "playing", finished: false, title: "", summary: "", tags: [], score: 0 });
+        context.setStatus("playing");
+        refs.start.style.display = "none";
+        refs.result.style.display = "none";
+        generatePile();
+        renderPile();
+        renderSlots();
+        updateHud();
+        startTimer();
+      }
+
+      function generatePile() {
+        const pile = [];
+        for (let i = 0; i < TOTAL_MEME_SETS; i++) {
+          const meme = MEMES[Math.floor(Math.random() * MEMES.length)];
+          for (let j = 0; j < 3; j++) {
+            pile.push({
+              ...meme,
+              uid: `meme_${i}_${j}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+              posX: 8 + Math.random() * 64,
+              posY: 6 + Math.random() * 62,
+              rotation: -25 + Math.random() * 50,
+              zIndex: Math.floor(Math.random() * 100)
+            });
+          }
+        }
+        for (let i = 0; i < TOTAL_TRAPS; i++) {
+          const trap = JARGONS[Math.floor(Math.random() * JARGONS.length)];
+          pile.push({
+            ...trap,
+            uid: `trap_${i}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            posX: 8 + Math.random() * 64,
+            posY: 6 + Math.random() * 62,
+            rotation: -25 + Math.random() * 50,
+            zIndex: Math.floor(Math.random() * 100)
+          });
+        }
+        state.pile = pile.sort(() => Math.random() - 0.5);
+      }
+
+      function renderPile() {
+        refs.pile.innerHTML = "";
+        state.pile.forEach((item) => {
+          const el = document.createElement("button");
+          el.type = "button";
+          el.className = "fifth-item";
+          el.style.left = item.posX + "%";
+          el.style.top = item.posY + "%";
+          el.style.transform = `rotate(${item.rotation}deg)`;
+          el.style.zIndex = item.zIndex;
+          el.style.background = item.bg;
+          el.style.color = item.color;
+          el.innerHTML = `<div class="icon">${item.emoji}</div><div class="name">${escapeHtml(item.name)}</div>`;
+          el.addEventListener("pointerdown", (event) => handleItemClick(item.uid, event));
+          refs.pile.appendChild(el);
+        });
+      }
+
+      function handleItemClick(uid, event) {
+        event.preventDefault();
+        if (state.processing || state.finished || state.phase !== "playing") return;
+        if (state.slots.length >= SLOT_CAPACITY) return;
+        const index = state.pile.findIndex((item) => item.uid === uid);
+        if (index === -1) return;
+        const item = state.pile[index];
+        const rect = container.getBoundingClientRect();
+        showFeedback(event.clientX - rect.left, event.clientY - rect.top, item.type);
+        state.pile.splice(index, 1);
+        state.slots.push(item);
+        state.slots.sort((a, b) => {
+          if (a.type === "trap" && b.type !== "trap") return 1;
+          if (b.type === "trap" && a.type !== "trap") return -1;
+          return a.id.localeCompare(b.id);
+        });
+        renderPile();
+        renderSlots();
+        checkMatches();
+      }
+
+      function showFeedback(x, y, type) {
+        const fb = document.createElement("div");
+        fb.className = "fifth-float";
+        fb.style.left = Math.max(8, x - 20) + "px";
+        fb.style.top = Math.max(8, y - 20) + "px";
+        fb.style.background = type === "meme" ? "rgba(34, 197, 94, 0.92)" : "rgba(239, 68, 68, 0.92)";
+        fb.style.color = "#fff";
+        fb.textContent = type === "meme" ? "✨ Get!" : "❌ 染上班味!";
+        refs.feedback.appendChild(fb);
+        window.setTimeout(() => fb.remove(), 800);
+      }
+
+      function renderSlots() {
+        refs.slots.innerHTML = "";
+        refs.slotCount.textContent = String(state.slots.length);
+        state.slots.forEach((item) => {
+          const el = document.createElement("div");
+          el.className = "fifth-slot";
+          el.style.background = item.type === "trap" ? "#cbd5e1" : item.bg;
+          el.style.color = item.color;
+          el.style.border = "1px solid rgba(255,255,255,0.18)";
+          el.innerHTML = `<div class="icon">${item.emoji}</div><div class="name">${escapeHtml(item.name)}</div>`;
+          refs.slots.appendChild(el);
+        });
+        refs.slotCount.classList.toggle("text-red-400", state.slots.length >= SLOT_CAPACITY);
+      }
+
+      async function checkMatches() {
+        const counts = {};
+        state.slots.forEach((item) => {
+          if (item.type === "meme") counts[item.id] = (counts[item.id] || 0) + 1;
+        });
+        const matchedId = Object.keys(counts).find((id) => counts[id] >= 3);
+        if (matchedId) {
+          state.processing = true;
+          const removeCount = {};
+          state.slots = state.slots.filter((item) => {
+            if (item.id !== matchedId) return true;
+            removeCount[item.id] = (removeCount[item.id] || 0) + 1;
+            return removeCount[item.id] > 3;
+          });
+          state.score += 100;
+          state.timeRemaining = Math.min(GAME_TIME, state.timeRemaining + 3);
+          renderSlots();
+          updateHud();
+          state.processing = false;
+          if (!state.pile.some((item) => item.type === "meme") && !state.slots.some((item) => item.type === "meme")) {
+            finishGame(true, "成功清空所有热梗");
+            return;
+          }
+        } else if (state.slots.length >= SLOT_CAPACITY) {
+          finishGame(false, state.slots.every((item) => item.type === "trap") ? "工位已完全被黑话吞噬" : "工位爆满，理不清逻辑");
+        }
+      }
+
+      function startTimer() {
+        clearTimer();
+        timer = window.setInterval(() => {
+          if (state.phase !== "playing") return;
+          state.timeRemaining -= 1;
+          updateHud();
+          if (state.timeRemaining <= 0) {
+            finishGame(false, "下班时间到，KPI未达标");
+          }
+        }, 1000);
+      }
+
+      function updateHud() {
+        refs.time.textContent = String(state.timeRemaining);
+        refs.score.textContent = String(state.score);
+      }
+
+      function clearTimer() {
+        if (timer) {
+          window.clearInterval(timer);
+          timer = null;
+        }
+      }
+
+      function finishGame(isWin, reason) {
+        if (state.finished) return;
+        state.finished = true;
+        state.phase = "result";
+        clearTimer();
+        const finalScore = state.score + Math.max(0, state.timeRemaining) * 4;
+        let title = isWin ? "游戏成功" : "游戏失败";
+        let subtitle = isWin ? "5G冲浪泰斗" : "班味重度患者";
+        let desc = isWin
+          ? "达成：" + reason + "。你的精神状态遥遥领先，没有任何职场黑话能禁锢你！"
+          : "死因：" + reason + "。你已被PPT腌入味。建议立即申请带薪拉屎，补充哈基米能量！";
+        if (isWin && finalScore >= 500) {
+          title = "游戏成功";
+          subtitle = "5G冲浪泰斗";
+        }
+        context.finishGame({
+          score: finalScore,
+          title,
+          summary: desc,
+          tags: ["热梗 " + state.score, "剩余 " + state.timeRemaining + "s", isWin ? "清台成功" : "工位爆满"]
+        });
+        refs.finalScore.textContent = String(finalScore);
+        refs.resultTitle.textContent = title;
+        refs.resultTitle.style.color = isWin ? "#16a34a" : "#dc2626";
+        refs.resultSubtitle.textContent = subtitle;
+        refs.finalScore.style.color = "#111827";
+        refs.resultDesc.innerHTML = escapeHtml(desc);
+        refs.start.style.display = "none";
+        refs.result.style.display = "flex";
+      }
+
+      return { mount, start, pause, resume, reset, destroy, getState };
+    }
+
+    function createSixthGame(container, context) {
+      const FRUITS = [
+        { level: 0, r: 16, color: "#e2b4f9", icon: "●", iconColor: "#fff", size: 16 },
+        { level: 1, r: 24, color: "#ff9e9e", icon: "🍎", iconColor: "#fff", size: 22 },
+        { level: 2, r: 34, color: "#ffcc66", icon: "🍋", iconColor: "#fff", size: 28 },
+        { level: 3, r: 44, color: "#ffff66", icon: "☀", iconColor: "#b8860b", size: 34 },
+        { level: 4, r: 56, color: "#b3e6b3", icon: "🍈", iconColor: "#fff", size: 42 },
+        { level: 5, r: 70, color: "#ff6b6b", icon: "🍎", iconColor: "#fff", size: 50 },
+        { level: 6, r: 86, color: "#ffccd5", icon: "🍑", iconColor: "#fff", size: 58 },
+        { level: 7, r: 104, color: "#ffe066", icon: "👑", iconColor: "#fff", size: 66 },
+        { level: 8, r: 124, color: "#e6dace", icon: "⚽", iconColor: "#fff", size: 74 },
+        { level: 9, r: 148, color: "#ff9999", icon: "🌙", iconColor: "#fff", size: 80 },
+        { level: 10, r: 175, color: "#fcd34d", icon: "🐉", iconColor: "#d97706", size: 88 }
+      ];
+      const Engine = window.Matter && Matter.Engine;
+      const Runner = window.Matter && Matter.Runner;
+      const Bodies = window.Matter && Matter.Bodies;
+      const Composite = window.Matter && Matter.Composite;
+      const Events = window.Matter && Matter.Events;
+      let state = null;
+      let refs = null;
+      let engine = null;
+      let runner = null;
+      let runnerActive = false;
+      let resizeHandler = null;
+      let mergeSet = new Set();
+
+      function getInitialState() {
+        return {
+          phase: "intro",
+          score: 0,
+          nextLevel: 0,
+          dropX: 0,
+          canDrop: true,
+          dangerTimer: 0,
+          fruitsData: [],
+          width: 0,
+          height: 0,
+          gameOver: false
+        };
+      }
+
+      function mount() {
+        container.className = "game-shell-inner sixth-root";
+        container.innerHTML = `
+          <div class="sixth-stage">
+            <div class="sixth-area" data-area>
+              <div class="sixth-warning" data-warning></div>
+              <div class="sixth-aim-line" data-aim></div>
+              <div class="sixth-fruit sixth-preview" data-preview style="display:none;"></div>
+            </div>
+            <div class="sixth-overlay" data-start>
+              <div class="game-panel sixth-panel" style="max-width:340px;padding:18px;text-align:center;">
+                <p class="game-copy" style="margin:0;color:#d97706;font-weight:800;">合成大奶龙</p>
+                <h2 class="game-heading" style="margin-top:6px;color:#ea580c;">拖动合成挑战</h2>
+                <p class="game-copy" style="margin-top:10px;">拖动投放小奶龙，两个一样的碰到一起就会长大。顶到警戒线就结束。</p>
+                <div class="modal-actions" style="margin-top:16px;">
+                  <button class="game-button primary" data-start-btn style="background:linear-gradient(180deg,#fb923c,#ea580c);color:#fff;width:100%;">开始游戏</button>
+                </div>
+              </div>
+            </div>
+            <div class="sixth-result" data-result style="display:none;">
+              <div class="game-panel sixth-panel" style="max-width:340px;padding:18px;text-align:center;">
+                <div style="font-size:48px;">💥</div>
+                <h2 style="margin:6px 0 4px;font-size:28px;color:#dc2626;">游戏结束</h2>
+                <p class="game-copy" style="color:#374151;">奶龙堆不下啦！</p>
+                <div class="game-panel" style="margin-top:14px;padding:12px;text-align:center;">
+                  <span style="display:block;font-size:10px;color:#64748b;font-weight:800;text-transform:uppercase;">本次得分</span>
+                  <strong data-final-score style="font-size:40px;color:#f97316;line-height:1;">0</strong>
+                </div>
+                <div class="modal-actions" style="margin-top:16px;">
+                  <button class="game-button primary" data-restart-btn style="background:linear-gradient(180deg,#fb923c,#ea580c);color:#fff;width:100%;">再来一局</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        refs = {
+          area: container.querySelector("[data-area]"),
+          warning: container.querySelector("[data-warning]"),
+          aim: container.querySelector("[data-aim]"),
+          preview: container.querySelector("[data-preview]"),
+          start: container.querySelector("[data-start]"),
+          result: container.querySelector("[data-result]"),
+          finalScore: container.querySelector("[data-final-score]")
+        };
+        refs.start.querySelector("[data-start-btn]").addEventListener("click", startGame);
+        refs.result.querySelector("[data-restart-btn]").addEventListener("click", reset);
+        state = getInitialState();
+        initPhysics();
+        renderIntro();
+      }
+
+      function initPhysics() {
+        if (!Engine || !Runner || !Bodies || !Composite || !Events) return;
+        state.width = refs.area.clientWidth;
+        state.height = refs.area.clientHeight;
+        state.dropX = state.width / 2;
+        engine = Engine.create();
+        engine.gravity.y = 1.2;
+        runner = Runner.create();
+        Runner.run(runner, engine);
+        runnerActive = true;
+        const wallOptions = { isStatic: true, render: { visible: false } };
+        const ground = Bodies.rectangle(state.width / 2, state.height + 30, state.width, 60, wallOptions);
+        const leftWall = Bodies.rectangle(-30, state.height / 2, 60, state.height * 2, wallOptions);
+        const rightWall = Bodies.rectangle(state.width + 30, state.height / 2, 60, state.height * 2, wallOptions);
+        Composite.add(engine.world, [ground, leftWall, rightWall]);
+        Events.on(engine, "afterUpdate", syncDOM);
+        Events.on(engine, "collisionStart", handleMerge);
+        refs.area.addEventListener("pointerdown", handlePointerMove);
+        refs.area.addEventListener("pointermove", handlePointerMove);
+        refs.area.addEventListener("pointerup", handleDrop);
+        refs.area.addEventListener("contextmenu", (e) => e.preventDefault());
+        resizeHandler = () => resizePhysics();
+        window.addEventListener("resize", resizeHandler);
+      }
+
+      function resizePhysics() {
+        if (!refs || !state) return;
+        state.width = refs.area.clientWidth;
+        state.height = refs.area.clientHeight;
+        if (state.width <= 0 || state.height <= 0) return;
+        state.dropX = clamp(state.dropX || state.width / 2, 0, state.width);
+        updatePreview();
+      }
+
+      function start() {
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+        renderIntro();
+      }
+
+      function pause() {
+        if (state.phase === "playing" && runner) {
+          Runner.stop(runner);
+          runnerActive = false;
+          context.setStatus("paused");
+        }
+      }
+
+      function resume() {
+        if (state.phase === "playing" && runner) {
+          if (!runnerActive) {
+            Runner.run(runner, engine);
+            runnerActive = true;
+          }
+          context.setStatus("playing");
+        }
+      }
+
+      function reset() {
+        if (runner) Runner.stop(runner);
+        runnerActive = false;
+        clearWorld();
+        state = getInitialState();
+        renderIntro();
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+      }
+
+      function destroy() {
+        if (runner) Runner.stop(runner);
+        runnerActive = false;
+        if (resizeHandler) window.removeEventListener("resize", resizeHandler);
+      }
+
+      function getState() {
+        return state;
+      }
+
+      function renderIntro() {
+        state.phase = "intro";
+        refs.start.style.display = "flex";
+        refs.result.style.display = "none";
+        refs.preview.style.display = "none";
+        refs.aim.style.display = "none";
+        refs.warning.classList.remove("danger");
+        refs.area.querySelectorAll(".sixth-fruit:not(.sixth-preview)").forEach((node) => node.remove());
+      }
+
+      function startGame() {
+        if (!engine) initPhysics();
+        clearWorld();
+        state = getInitialState();
+        state.phase = "playing";
+        state.score = 0;
+        state.dropX = refs.area.clientWidth / 2;
+        state.nextLevel = Math.floor(Math.random() * 4);
+        if (runner && engine && !runnerActive) {
+          Runner.run(runner, engine);
+          runnerActive = true;
+        }
+        context.setSummary({ status: "playing", finished: false, title: "", summary: "", tags: [], score: 0 });
+        context.setStatus("playing");
+        refs.start.style.display = "none";
+        refs.result.style.display = "none";
+        refs.preview.style.display = "flex";
+        refs.aim.style.display = "block";
+        updatePreview();
+      }
+
+      function clearWorld() {
+        if (!engine) return;
+        const bodies = engine.world.bodies.slice();
+        bodies.forEach((body) => {
+          if (body.label === "fruit") Composite.remove(engine.world, body);
+        });
+        state.fruitsData.forEach((data) => data.el.remove());
+        state.fruitsData = [];
+        mergeSet.clear();
+        refs.area.querySelectorAll(".sixth-fruit:not(.sixth-preview)").forEach((node) => node.remove());
+      }
+
+      function updatePreview() {
+        const conf = FRUITS[state.nextLevel];
+        const minX = conf.r;
+        const maxX = refs.area.clientWidth - conf.r;
+        state.dropX = Math.max(minX, Math.min(state.dropX, maxX));
+        refs.preview.className = "sixth-fruit sixth-preview";
+        refs.preview.style.width = conf.r * 2 + "px";
+        refs.preview.style.height = conf.r * 2 + "px";
+        refs.preview.style.left = state.dropX - conf.r + "px";
+        refs.preview.style.top = "36px";
+        refs.preview.style.display = "flex";
+        refs.preview.style.background = "radial-gradient(circle at 30% 30%, " + conf.color + ", #00000040)";
+        refs.preview.style.color = conf.iconColor;
+        refs.preview.style.fontSize = conf.size + "px";
+        refs.preview.textContent = conf.icon;
+        refs.aim.style.left = state.dropX + "px";
+        refs.aim.style.display = "block";
+      }
+
+      function handlePointerMove(e) {
+        if (state.phase !== "playing" || !state.canDrop) return;
+        const rect = refs.area.getBoundingClientRect();
+        state.dropX = e.clientX - rect.left;
+        updatePreview();
+      }
+
+      function handleDrop() {
+        if (state.phase !== "playing" || !state.canDrop) return;
+        state.canDrop = false;
+        refs.preview.style.display = "none";
+        refs.aim.style.display = "none";
+        spawnFruit(state.dropX, 40 + FRUITS[state.nextLevel].r, state.nextLevel);
+        window.setTimeout(() => {
+          if (state.phase === "playing") {
+            state.nextLevel = Math.floor(Math.random() * 5);
+            state.canDrop = true;
+            updatePreview();
+          }
+        }, 650);
+      }
+
+      function spawnFruit(x, y, level) {
+        const conf = FRUITS[level];
+        const el = document.createElement("div");
+        el.className = "sixth-fruit";
+        el.style.width = conf.r * 2 + "px";
+        el.style.height = conf.r * 2 + "px";
+        el.style.left = x - conf.r + "px";
+        el.style.top = y - conf.r + "px";
+        el.style.background = "radial-gradient(circle at 30% 30%, " + conf.color + ", #00000040)";
+        el.style.color = conf.iconColor;
+        el.style.fontSize = conf.size + "px";
+        el.textContent = conf.icon;
+        refs.area.appendChild(el);
+        const body = Bodies.circle(x, y, conf.r, {
+          restitution: 0.2,
+          friction: 0.1,
+          density: 0.001 * (level + 1),
+          label: "fruit",
+          render: { visible: false }
+        });
+        body.fruitLevel = level;
+        body.fruitId = Math.random().toString(36).slice(2, 11);
+        Composite.add(engine.world, body);
+        state.fruitsData.push({ body, el, level, id: body.fruitId });
+      }
+
+      function syncDOM() {
+        if (state.phase !== "playing") return;
+        let hasDanger = false;
+        const warningY = refs.area.clientHeight * 0.15;
+        state.fruitsData.forEach((data) => {
+          const b = data.body;
+          const conf = FRUITS[data.level];
+          data.el.style.left = b.position.x - conf.r + "px";
+          data.el.style.top = b.position.y - conf.r + "px";
+          data.el.style.transform = "rotate(" + b.angle + "rad)";
+          if (b.position.y - conf.r < warningY) hasDanger = true;
+        });
+        if (hasDanger) {
+          state.dangerTimer += 1;
+          refs.warning.classList.add("danger");
+          if (state.dangerTimer > 90) {
+            triggerGameOver();
+          }
+        } else {
+          state.dangerTimer = 0;
+          refs.warning.classList.remove("danger");
+        }
+        mergeSet.clear();
+      }
+
+      function handleMerge(event) {
+        if (state.phase !== "playing") return;
+        event.pairs.forEach((pair) => {
+          const a = pair.bodyA;
+          const b = pair.bodyB;
+          if (a.label === "fruit" && b.label === "fruit" && a.fruitLevel === b.fruitLevel) {
+            if (mergeSet.has(a.fruitId) || mergeSet.has(b.fruitId)) return;
+            mergeSet.add(a.fruitId);
+            mergeSet.add(b.fruitId);
+            Composite.remove(engine.world, [a, b]);
+            const dataA = state.fruitsData.find((f) => f.id === a.fruitId);
+            const dataB = state.fruitsData.find((f) => f.id === b.fruitId);
+            if (dataA) dataA.el.remove();
+            if (dataB) dataB.el.remove();
+            state.fruitsData = state.fruitsData.filter((f) => f.id !== a.fruitId && f.id !== b.fruitId);
+            const midX = (a.position.x + b.position.x) / 2;
+            const midY = (a.position.y + b.position.y) / 2;
+            const newLevel = a.fruitLevel + 1;
+            addScore((newLevel) * 10);
+            if (newLevel <= 10) {
+              window.setTimeout(() => spawnFruit(midX, midY, newLevel), 0);
+            }
+          }
+        });
+      }
+
+      function addScore(points) {
+        state.score += points;
+      }
+
+      function triggerGameOver() {
+        if (state.gameOver) return;
+        state.gameOver = true;
+        state.phase = "gameover";
+        if (runner) Runner.stop(runner);
+        runnerActive = false;
+        const finalScore = state.score;
+        refs.finalScore.textContent = String(finalScore);
+        context.finishGame({
+          score: finalScore,
+          title: "奶龙堆满啦",
+          summary: "顶部警戒线被顶穿了，奶龙合成链路终于停下。",
+          tags: ["得分 " + finalScore, "等级 " + state.nextLevel, "已爆堆"]
+        });
+        refs.start.style.display = "none";
+        refs.result.style.display = "flex";
+        refs.preview.style.display = "none";
+        refs.aim.style.display = "none";
+      }
+
+      return { mount, start, pause, resume, reset, destroy, getState };
+    }
+
+    function createSeventhGame(container, context) {
+      const GAME_DURATION = 300;
+      const ROWS = 8;
+      const COLS = 6;
+      const LOGICAL_ROWS = ROWS + 2;
+      const LOGICAL_COLS = COLS + 2;
+      const ICONS = ["★", "❤", "⚡", "◆", "👻", "🚀", "☾", "☀", "🔥", "🍃", "☁", "❄"];
+      let board = [];
+      let selectedTile = null;
+      let score = 0;
+      let timeLeft = 0;
+      let timerInterval = null;
+      let pairsLeft = 0;
+      let shuffleChances = 3;
+      let isAnimating = false;
+      let state = null;
+      let refs = null;
+
+      function getInitialState() {
+        return { phase: "home", finished: false };
+      }
+
+      function mount() {
+        container.className = "game-shell-inner seventh-root";
+        container.innerHTML = `
+          <div class="seventh-stage">
+            <div class="seventh-home" data-home>
+              <div class="game-panel seventh-panel" style="max-width:340px;padding:18px;text-align:center;">
+                <div style="width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;background:#fde047;border:4px solid #111827;box-shadow:4px 4px 0 #111827;font-size:44px;">😺</div>
+                <h2 class="game-heading" style="margin:0;color:#111827;">多巴胺连连看</h2>
+                <p class="game-copy" style="margin-top:8px;color:#374151;">5 分钟激情寻路挑战！</p>
+                <div class="modal-actions" style="margin-top:16px;">
+                  <button class="game-button primary" data-start-btn style="background:#f472b6;color:#fff;width:100%;">开始游戏</button>
+                </div>
+              </div>
+            </div>
+            <div class="game-screen hidden" data-game style="display:none;flex-direction:column;height:100%;">
+              <div class="seventh-hud" style="padding:12px 12px 0;">
+                <div class="game-panel seventh-panel" style="padding:10px 12px;flex:0 0 auto;">
+                  <div style="font-size:10px;font-weight:900;text-transform:uppercase;color:#64748b;">TIME</div>
+                  <div data-timer style="font-size:24px;font-weight:900;line-height:1;">05:00</div>
+                </div>
+                <div class="game-panel seventh-panel" style="padding:10px 12px;flex:0 0 auto;text-align:right;">
+                  <div style="font-size:10px;font-weight:900;text-transform:uppercase;color:#64748b;">SCORE</div>
+                  <div data-score style="font-size:24px;font-weight:900;line-height:1;color:#f43f5e;">0</div>
+                </div>
+              </div>
+              <div style="padding:10px 12px 0;">
+                <div class="game-panel seventh-panel" style="height:14px;overflow:hidden;border-radius:999px;">
+                  <div data-time-bar style="width:100%;height:100%;background:#34d399;"></div>
+                </div>
+              </div>
+              <div style="flex:1;min-height:0;padding:10px 12px;">
+                <div class="seventh-stage">
+                  <div class="seventh-board" data-board></div>
+                  <svg class="seventh-line-svg" data-lines></svg>
+                </div>
+              </div>
+              <div style="padding:0 12px 12px;display:flex;gap:10px;">
+                <button class="game-button" data-shuffle style="flex:1;background:#22d3ee;color:#111827;">重排 (<span data-shuffle-count>3</span>)</button>
+                <button class="game-button" data-quit style="width:72px;background:#facc15;color:#111827;">退</button>
+              </div>
+            </div>
+            <div class="seventh-result" data-result style="display:none;">
+              <div class="game-panel seventh-panel" style="max-width:340px;padding:18px;text-align:center;">
+                <div data-result-icon style="width:96px;height:96px;margin:0 auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#34d399;border:4px solid #111827;box-shadow:4px 4px 0 #111827;font-size:42px;">🏆</div>
+                <h2 data-result-title class="game-heading" style="margin:0;color:#111827;">多巴胺王者！</h2>
+                <p data-result-message class="game-copy" style="margin-top:8px;color:#374151;"></p>
+                <div class="game-panel" style="margin-top:14px;padding:12px;display:flex;justify-content:space-around;background:#fef9c3;">
+                  <div><div style="font-size:10px;font-weight:900;text-transform:uppercase;color:#64748b;">SCORE</div><div data-final-score style="font-size:28px;font-weight:900;color:#ec4899;">0</div></div>
+                  <div><div style="font-size:10px;font-weight:900;text-transform:uppercase;color:#64748b;">TIME</div><div data-final-time style="font-size:28px;font-weight:900;color:#3b82f6;">0s</div></div>
+                </div>
+                <div class="modal-actions" style="margin-top:16px;display:flex;gap:10px;">
+                  <button class="game-button" data-back style="flex:1;background:#e5e7eb;color:#111827;">返回</button>
+                  <button class="game-button" data-restart style="flex:1;background:#34d399;color:#111827;">再来</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        refs = {
+          home: container.querySelector("[data-home]"),
+          game: container.querySelector("[data-game]"),
+          result: container.querySelector("[data-result]"),
+          timer: container.querySelector("[data-timer]"),
+          score: container.querySelector("[data-score]"),
+          timeBar: container.querySelector("[data-time-bar]"),
+          board: container.querySelector("[data-board]"),
+          lines: container.querySelector("[data-lines]"),
+          shuffleCount: container.querySelector("[data-shuffle-count]"),
+          shuffle: container.querySelector("[data-shuffle]"),
+          quit: container.querySelector("[data-quit]"),
+          startBtn: container.querySelector("[data-start-btn]"),
+          resultIcon: container.querySelector("[data-result-icon]"),
+          resultTitle: container.querySelector("[data-result-title]"),
+          resultMessage: container.querySelector("[data-result-message]"),
+          finalScore: container.querySelector("[data-final-score]"),
+          finalTime: container.querySelector("[data-final-time]"),
+          back: container.querySelector("[data-back]"),
+          restart: container.querySelector("[data-restart]")
+        };
+        refs.startBtn.addEventListener("click", startGame);
+        refs.shuffle.addEventListener("click", shuffleBoard);
+        refs.quit.addEventListener("click", quitGame);
+        refs.back.addEventListener("click", backToHome);
+        refs.restart.addEventListener("click", startGame);
+        state = getInitialState();
+        renderHome();
+      }
+
+      function start() {
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+        renderHome();
+      }
+
+      function pause() {
+        if (state.phase === "playing") {
+          clearInterval(timerInterval);
+          context.setStatus("paused");
+        }
+      }
+
+      function resume() {
+        if (state.phase === "playing") {
+          clearInterval(timerInterval);
+          timerInterval = setInterval(timerTick, 1000);
+          context.setStatus("playing");
+        }
+      }
+
+      function reset() {
+        clearInterval(timerInterval);
+        state = getInitialState();
+        renderHome();
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+      }
+
+      function destroy() {
+        clearInterval(timerInterval);
+      }
+
+      function getState() {
+        return state;
+      }
+
+      function renderHome() {
+        state.phase = "home";
+        refs.home.style.display = "flex";
+        refs.game.style.display = "none";
+        refs.result.style.display = "none";
+      }
+
+      function startGame() {
+        clearInterval(timerInterval);
+        state = getInitialState();
+        state.phase = "playing";
+        board = [];
+        selectedTile = null;
+        score = 0;
+        timeLeft = GAME_DURATION;
+        pairsLeft = (ROWS * COLS) / 2;
+        shuffleChances = 3;
+        isAnimating = false;
+        refs.home.style.display = "none";
+        refs.result.style.display = "none";
+        refs.game.style.display = "flex";
+        refs.shuffleCount.textContent = String(shuffleChances);
+        updateScoreUI();
+        updateTimerUI();
+        initBoard();
+        renderBoard();
+        context.setSummary({ status: "playing", finished: false, title: "", summary: "", tags: [], score: 0 });
+        context.setStatus("playing");
+        timerInterval = setInterval(timerTick, 1000);
+      }
+
+      function timerTick() {
+        timeLeft -= 1;
+        updateTimerUI();
+        if (timeLeft <= 0) endGame(false);
+      }
+
+      function endGame(win) {
+        clearInterval(timerInterval);
+        state.phase = "result";
+        state.finished = true;
+        setTimeout(() => {
+          refs.game.style.display = "none";
+          refs.result.style.display = "flex";
+          const spent = GAME_DURATION - timeLeft;
+          refs.finalScore.textContent = String(score);
+          refs.finalTime.textContent = spent + "s";
+          if (win) {
+            refs.resultIcon.style.background = "#34d399";
+            refs.resultIcon.textContent = "👑";
+            refs.resultTitle.textContent = "多巴胺王者！";
+            refs.resultMessage.textContent = "惊人的眼力与手速！";
+          } else {
+            refs.resultIcon.style.background = "#f43f5e";
+            refs.resultIcon.textContent = "💣";
+            refs.resultTitle.textContent = "时间耗尽";
+            refs.resultMessage.textContent = "下次再快一点点就赢啦！";
+          }
+          context.finishGame({
+            score,
+            title: win ? "多巴胺王者！" : "时间耗尽",
+            summary: win ? "你把整张棋盘都配对干净了。" : "时间结束前还差一点点。",
+            tags: ["配对 " + (24 - pairsLeft * 2), "重排 " + (3 - shuffleChances), win ? "通关" : "未通关"]
+          });
+        }, 200);
+      }
+
+      function quitGame() {
+        clearInterval(timerInterval);
+        renderHome();
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+      }
+
+      function backToHome() {
+        renderHome();
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+      }
+
+      function updateTimerUI() {
+        const m = Math.floor(timeLeft / 60).toString().padStart(2, "0");
+        const s = (timeLeft % 60).toString().padStart(2, "0");
+        refs.timer.textContent = m + ":" + s;
+        refs.timeBar.style.width = (timeLeft / GAME_DURATION) * 100 + "%";
+        if (timeLeft < 30) {
+          refs.timeBar.style.background = "#f43f5e";
+          refs.timer.style.color = "#f43f5e";
+        } else {
+          refs.timeBar.style.background = "#34d399";
+          refs.timer.style.color = "#111827";
+        }
+      }
+
+      function updateScoreUI() {
+        refs.score.textContent = String(score);
+      }
+
+      function initBoard() {
+        board = Array.from({ length: LOGICAL_ROWS }, () => Array(LOGICAL_COLS).fill(0));
+        const tileTypes = [];
+        for (let i = 0; i < (ROWS * COLS) / 2; i++) {
+          const typeId = (i % ICONS.length) + 1;
+          tileTypes.push(typeId, typeId);
+        }
+        tileTypes.sort(() => Math.random() - 0.5);
+        let index = 0;
+        for (let r = 1; r <= ROWS; r++) {
+          for (let c = 1; c <= COLS; c++) {
+            board[r][c] = tileTypes[index++];
+          }
+        }
+      }
+
+      function renderBoard() {
+        refs.board.innerHTML = "";
+        for (let r = 0; r < LOGICAL_ROWS; r++) {
+          for (let c = 0; c < LOGICAL_COLS; c++) {
+            const val = board[r][c];
+            const btn = document.createElement("button");
+            btn.dataset.r = String(r);
+            btn.dataset.c = String(c);
+            btn.id = `tile-${r}-${c}`;
+            if (r > 0 && r <= ROWS && c > 0 && c <= COLS) {
+              btn.className = "seventh-tile";
+              if (val > 0) {
+                btn.textContent = ICONS[val - 1];
+                btn.addEventListener("click", () => handleTileClick(r, c));
+              } else {
+                btn.classList.add("matched");
+              }
+            } else {
+              btn.className = "seventh-tile hidden-path";
+            }
+            refs.board.appendChild(btn);
+          }
+        }
+      }
+
+      function getTileDOM(r, c) {
+        return document.getElementById(`tile-${r}-${c}`);
+      }
+
+      function shuffleBoard() {
+        if (shuffleChances <= 0 || isAnimating || state.phase !== "playing") return;
+        shuffleChances -= 1;
+        refs.shuffleCount.textContent = String(shuffleChances);
+        const remaining = [];
+        for (let r = 1; r <= ROWS; r++) {
+          for (let c = 1; c <= COLS; c++) {
+            if (board[r][c] !== 0) remaining.push(board[r][c]);
+          }
+        }
+        remaining.sort(() => Math.random() - 0.5);
+        let index = 0;
+        for (let r = 1; r <= ROWS; r++) {
+          for (let c = 1; c <= COLS; c++) {
+            if (board[r][c] !== 0) board[r][c] = remaining[index++];
+          }
+        }
+        selectedTile = null;
+        renderBoard();
+      }
+
+      async function handleTileClick(r, c) {
+        if (board[r][c] === 0 || isAnimating || state.phase !== "playing") return;
+        const clickedDom = getTileDOM(r, c);
+        if (!selectedTile) {
+          selectedTile = { r, c };
+          clickedDom.classList.add("selected");
+          return;
+        }
+        if (selectedTile.r === r && selectedTile.c === c) {
+          clickedDom.classList.remove("selected");
+          selectedTile = null;
+          return;
+        }
+        const val1 = board[selectedTile.r][selectedTile.c];
+        const val2 = board[r][c];
+        const firstDom = getTileDOM(selectedTile.r, selectedTile.c);
+        if (val1 === val2) {
+          const path = findPath(selectedTile, { r, c });
+          if (path) {
+            isAnimating = true;
+            await drawSVGLine(path);
+            firstDom.classList.remove("selected");
+            firstDom.classList.add("matched");
+            clickedDom.classList.add("matched");
+            board[selectedTile.r][selectedTile.c] = 0;
+            board[r][c] = 0;
+            score += 50;
+            updateScoreUI();
+            pairsLeft -= 1;
+            selectedTile = null;
+            isAnimating = false;
+            if (pairsLeft === 0) endGame(true);
+          } else {
+            changeSelection(firstDom, clickedDom, { r, c });
+          }
+        } else {
+          changeSelection(firstDom, clickedDom, { r, c });
+        }
+      }
+
+      function changeSelection(oldDom, newDom, newPos) {
+        oldDom.classList.remove("selected");
+        selectedTile = newPos;
+        newDom.classList.add("selected");
+      }
+
+      function drawSVGLine(pathCoords) {
+        return new Promise((resolve) => {
+          refs.lines.innerHTML = "";
+          const points = pathCoords.map((p) => {
+            const el = getTileDOM(p.r, p.c);
+            const x = el.offsetLeft + el.offsetWidth / 2;
+            const y = el.offsetTop + el.offsetHeight / 2;
+            return `${x},${y}`;
+          }).join(" ");
+          const shadowLine = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+          shadowLine.setAttribute("points", points);
+          shadowLine.setAttribute("fill", "none");
+          shadowLine.setAttribute("stroke", "#111827");
+          shadowLine.setAttribute("stroke-width", "14");
+          shadowLine.setAttribute("stroke-linecap", "square");
+          shadowLine.setAttribute("stroke-linejoin", "miter");
+          shadowLine.setAttribute("transform", "translate(3,3)");
+          const mainLine = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+          mainLine.setAttribute("points", points);
+          mainLine.setAttribute("fill", "none");
+          mainLine.setAttribute("stroke", "#22d3ee");
+          mainLine.setAttribute("stroke-width", "10");
+          mainLine.setAttribute("stroke-linecap", "square");
+          mainLine.setAttribute("stroke-linejoin", "miter");
+          refs.lines.appendChild(shadowLine);
+          refs.lines.appendChild(mainLine);
+          setTimeout(() => {
+            refs.lines.innerHTML = "";
+            resolve();
+          }, 280);
+        });
+      }
+
+      function findPath(p1, p2) {
+        return matchDirectPath(p1, p2) || matchOneCornerPath(p1, p2) || matchTwoCornerPath(p1, p2);
+      }
+
+      function isClear(r, c) {
+        return board[r][c] === 0;
+      }
+
+      function matchDirectPath(p1, p2) {
+        if (p1.r !== p2.r && p1.c !== p2.c) return null;
+        if (p1.r === p2.r) {
+          const minC = Math.min(p1.c, p2.c);
+          const maxC = Math.max(p1.c, p2.c);
+          for (let c = minC + 1; c < maxC; c++) if (!isClear(p1.r, c)) return null;
+          return [p1, p2];
+        }
+        const minR = Math.min(p1.r, p2.r);
+        const maxR = Math.max(p1.r, p2.r);
+        for (let r = minR + 1; r < maxR; r++) if (!isClear(r, p1.c)) return null;
+        return [p1, p2];
+      }
+
+      function matchOneCornerPath(p1, p2) {
+        const corner1 = { r: p1.r, c: p2.c };
+        const corner2 = { r: p2.r, c: p1.c };
+        if (isClear(corner1.r, corner1.c) && matchDirectPath(p1, corner1) && matchDirectPath(corner1, p2)) return [p1, corner1, p2];
+        if (isClear(corner2.r, corner2.c) && matchDirectPath(p1, corner2) && matchDirectPath(corner2, p2)) return [p1, corner2, p2];
+        return null;
+      }
+
+      function matchTwoCornerPath(p1, p2) {
+        for (let r = p1.r - 1; r >= 0; r--) {
+          if (!isClear(r, p1.c)) break;
+          const cPath = matchOneCornerPath({ r, c: p1.c }, p2);
+          if (cPath) return [p1, ...cPath];
+        }
+        for (let r = p1.r + 1; r < LOGICAL_ROWS; r++) {
+          if (!isClear(r, p1.c)) break;
+          const cPath = matchOneCornerPath({ r, c: p1.c }, p2);
+          if (cPath) return [p1, ...cPath];
+        }
+        for (let c = p1.c - 1; c >= 0; c--) {
+          if (!isClear(p1.r, c)) break;
+          const cPath = matchOneCornerPath({ r: p1.r, c }, p2);
+          if (cPath) return [p1, ...cPath];
+        }
+        for (let c = p1.c + 1; c < LOGICAL_COLS; c++) {
+          if (!isClear(p1.r, c)) break;
+          const cPath = matchOneCornerPath({ r: p1.r, c }, p2);
+          if (cPath) return [p1, ...cPath];
+        }
+        return null;
+      }
+
+      return { mount, start, pause, resume, reset, destroy, getState };
     }
 
     function createQuizGame(container, context) {
