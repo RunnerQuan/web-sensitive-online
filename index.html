@@ -233,20 +233,6 @@
       overflow: hidden;
     }
 
-    .twist-slide::before {
-      content: "";
-      position: absolute;
-      left: 50%;
-      bottom: 0;
-      transform: translateX(-50%);
-      width: min(92%, 340px);
-      height: 40%;
-      background: url("./assets/images/second-bakground.png") center bottom / contain no-repeat;
-      pointer-events: none;
-      z-index: 0;
-      filter: drop-shadow(0 14px 24px rgba(76,124,134,0.18));
-    }
-
     .side-actions {
       position: absolute;
       right: calc(42px + var(--safe-right));
@@ -1026,15 +1012,13 @@
     }
 
     .screw-home-art {
-      position: absolute;
-      left: 50%;
-      bottom: 6px;
+      position: relative;
+      display: block;
+      margin: 14px auto 6px;
       width: min(92%, 340px);
-      max-height: 40%;
+      max-height: 280px;
       object-fit: contain;
-      transform: translateX(-50%);
       pointer-events: none;
-      z-index: 0;
       filter: drop-shadow(0 14px 24px rgba(76, 124, 134, 0.18));
     }
 
@@ -2221,6 +2205,34 @@
       if (!data || typeof data !== "object") return;
       if (data.type === "game-nav" && data.target === "sixth") {
         loopToSlide(0);
+      }
+      if (data.type === "game-result" && data.gameId) {
+        const target = AppState.games[data.gameId];
+        if (target) {
+          target.status = "finished";
+          target.finished = true;
+          target.score = data.score || 0;
+          target.title = data.title || "";
+          target.summary = data.summary || "";
+          target.tags = Array.isArray(data.tags) ? data.tags.slice(0, 3) : [];
+          target.result = data;
+          if (currentGameId === data.gameId) updateCaption();
+          persistState();
+        }
+      }
+      if (data.type === "game-restart" && data.gameId) {
+        const target = AppState.games[data.gameId];
+        if (target) {
+          target.status = "playing";
+          target.finished = false;
+          target.score = 0;
+          target.title = "";
+          target.summary = "";
+          target.tags = [];
+          target.result = null;
+          if (currentGameId === data.gameId) updateCaption();
+          persistState();
+        }
       }
     }
 
@@ -4210,7 +4222,6 @@
         container.innerHTML = `
           <div class="game-screen screw-screen game-screen-scroll">
             <div class="tag-list"></div>
-            <img class="screw-home-art" src="./assets/images/second-bakground.png" alt="拧螺丝主题插画">
             <div class="game-panel screw-hero">
               <p class="game-copy">越想拧明白，越容易拧巴。</p>
               <h2 class="game-heading" style="color:#20343d;">别笑，你也过不了第二关</h2>
@@ -4219,6 +4230,7 @@
                 <button class="game-button primary" id="twistStartButton" style="background:linear-gradient(90deg,#61a9ff 0%, #22d3ae 100%);color:#fff;">▶ 拆解开始</button>
               </div>
             </div>
+            <img class="screw-home-art" src="./assets/images/second-bakground.png" alt="拧螺丝主题插画">
           </div>
         `;
         container.querySelector("#twistStartButton").addEventListener("click", beginGame);

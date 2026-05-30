@@ -204,7 +204,7 @@
         const GRID_SIZE = 6;
         const INITIAL_MOVES = 20;
         
-        // 6 Different Cat Memes from Unsplash
+        // 6 Different Cat Memes from local assets
         const CAT_TYPES = [
             './assets/images/cat-meme/1.jpg',
             './assets/images/cat-meme/2.jpg',
@@ -259,11 +259,41 @@
             moves = INITIAL_MOVES;
             updateStatus();
             initBoard();
+            // 通知父页面游戏已重新开始
+            window.parent.postMessage({
+                type: 'game-restart',
+                gameId: 'seventh'
+            }, '*');
         }
 
         function gameOver() {
             finalScoreEl.innerText = score;
             switchScreen('screen-result');
+            // 将游戏结果回传给父页面，供全局结算使用
+            const movesUsed = INITIAL_MOVES - moves;
+            let title, summary;
+            if (score >= 300) {
+                title = '多巴胺王者！';
+                summary = '你把整张棋盘都配对干净了，惊人的眼力与手速！';
+            } else if (score >= 150) {
+                title = '猫meme鉴赏家';
+                summary = '你的三连消除水平已经超出常人认知。';
+            } else if (score >= 80) {
+                title = '稳中带猫';
+                summary = '虽然没有华丽操作，但每一步都有猫的道理。';
+            } else {
+                title = '被猫挠了';
+                summary = '这些猫meme可能不太配合你，下次再来。';
+            }
+            const tags = ['得分 ' + score, '步数 ' + movesUsed + '/' + INITIAL_MOVES, score >= 150 ? '高玩' : '入门'];
+            window.parent.postMessage({
+                type: 'game-result',
+                gameId: 'seventh',
+                score: score,
+                title: title,
+                summary: summary,
+                tags: tags
+            }, '*');
         }
 
         let exitTouchStartX = 0;
@@ -292,7 +322,7 @@
             if (!exitTouchArmed || exitTouchBlocked || !event.touches || event.touches.length !== 1) return;
             const dx = event.touches[0].clientX - exitTouchStartX;
             const dy = event.touches[0].clientY - exitTouchStartY;
-            if (dy < -EXIT_SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+            if (dy > EXIT_SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
                 event.preventDefault();
             }
         }
@@ -305,7 +335,7 @@
             }
             const dx = event.changedTouches[0].clientX - exitTouchStartX;
             const dy = event.changedTouches[0].clientY - exitTouchStartY;
-            if (dy < -EXIT_SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+            if (dy > EXIT_SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
                 notifyParentHome();
             }
             exitTouchArmed = false;
@@ -365,15 +395,21 @@
             renderBoard();
         }
 
-        function renderBoard(animateType = '') {
+        // 修改：现在接受一个 fallingGrid 数组，用于精准渲染哪些方块正在发生掉落行为，而非全盘掉落。
+        function renderBoard(fallingGrid = null) {
             boardEl.innerHTML = '';
             for (let r = 0; r < GRID_SIZE; r++) {
                 for (let c = 0; c < GRID_SIZE; c++) {
                     const tileVal = board[r][c];
                     const tileDiv = document.createElement('div');
                     
+                    let extraClass = '';
+                    if (fallingGrid && fallingGrid[r][c]) {
+                        extraClass = 'falling';
+                    }
+                    
                     // Neo-brutalist tile styling
-                    tileDiv.className = `tile w-full h-full border-2 border-black rounded-xl overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer relative bg-white flex justify-center items-center ${animateType}`;
+                    tileDiv.className = `tile w-full h-full border-2 border-black rounded-xl overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer relative bg-white flex justify-center items-center ${extraClass}`;
                     
                     tileDiv.dataset.r = r;
                     tileDiv.dataset.c = c;
@@ -464,9 +500,34 @@
             activeC = undefined;
         }
 
+        // 修改：增加了物理滑动动画（滑动交换过程更加真实可见）
         async function swapTiles(r1, c1, r2, c2) {
             isAnimating = true;
             
+            // --- 添加视觉平移滑动动画阶段 ---
+            const idx1 = r1 * GRID_SIZE + c1;
+            const idx2 = r2 * GRID_SIZE + c2;
+            const el1 = boardEl.children[idx1];
+            const el2 = boardEl.children[idx2];
+            
+            if (el1 && el2) {
+                const rect1 = el1.getBoundingClientRect();
+                const rect2 = el2.getBoundingClientRect();
+                const visualDx = rect2.left - rect1.left;
+                const visualDy = rect2.top - rect1.top;
+                
+                el1.style.transition = 'transform 0.2s ease-in-out';
+                el2.style.transition = 'transform 0.2s ease-in-out';
+                el1.style.transform = `translate(${visualDx}px, ${visualDy}px)`;
+                el2.style.transform = `translate(${-visualDx}px, ${-visualDy}px)`;
+                el1.style.zIndex = '10';
+                el2.style.zIndex = '10';
+                
+                await sleep(200); // 等待滑动手势做完
+            }
+            // --- 视觉动画结束 ---
+
+            // 更新内部逻辑数据结构
             let temp = board[r1][c1];
             board[r1][c1] = board[r2][c2];
             board[r2][c2] = temp;
@@ -474,22 +535,43 @@
             selectedTile = null; 
             renderBoard(); 
 
-            await sleep(200);
+            // 给一点点渲染缓冲时间
+            await sleep(50);
 
             const matches = findMatches();
             
             if (matches.length > 0) {
-                // 正确消除：不扣除步数
+                // 正确消除：触发消除和掉落（不扣除步数）
                 updateStatus(false);
                 playEffect(successAudio);
                 await processMatches(matches);
             } else {
-                // 错误消除：换回原位
+                // 错误消除：先在视觉上退回原位，再扣除步数
+                const el1_new = boardEl.children[idx1];
+                const el2_new = boardEl.children[idx2];
+                
+                if (el1_new && el2_new) {
+                    const rect1 = el1_new.getBoundingClientRect();
+                    const rect2 = el2_new.getBoundingClientRect();
+                    const visualDx = rect2.left - rect1.left;
+                    const visualDy = rect2.top - rect1.top;
+                    
+                    el1_new.style.transition = 'transform 0.2s ease-in-out';
+                    el2_new.style.transition = 'transform 0.2s ease-in-out';
+                    el1_new.style.transform = `translate(${visualDx}px, ${visualDy}px)`;
+                    el2_new.style.transform = `translate(${-visualDx}px, ${-visualDy}px)`;
+                    el1_new.style.zIndex = '10';
+                    el2_new.style.zIndex = '10';
+                    
+                    await sleep(200);
+                }
+
+                // 还原逻辑数组
                 temp = board[r1][c1];
                 board[r1][c1] = board[r2][c2];
                 board[r2][c2] = temp;
                 
-                // 错误消除：扣除 1 步，触发震动反馈
+                // 扣除 1 步，触发震动反馈
                 moves -= 1;
                 if (moves < 0) moves = 0; 
                 updateStatus(true);
@@ -545,6 +627,7 @@
             }
             updateStatus(false);
 
+            // "砰"地一下爆破动画
             matches.forEach(m => {
                 const index = m.r * GRID_SIZE + m.c;
                 const tileEl = boardEl.children[index];
@@ -557,13 +640,17 @@
                 board[m.r][m.c] = null;
             });
 
-            dropTiles();
-            renderBoard('falling'); 
+            // 掉落逻辑，并精准返回哪些格子进行了坠落，传递给渲染函数
+            const fallingGrid = dropTiles();
+            renderBoard(fallingGrid); 
             
             await sleep(350);
 
+            // 连击 (Combo) 判定
             const newMatches = findMatches();
             if (newMatches.length > 0) {
+                // 如果掉落后凑成3个，触发连击效果
+                playEffect(successAudio);
                 await processMatches(newMatches);
             } else {
                 isAnimating = false;
@@ -576,22 +663,31 @@
             }
         }
 
+        // 修改：增加了 fallingGrid 的返回结果，只记录真正掉落或新生成的动物位置
         function dropTiles() {
+            let fallingGrid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(false));
+
             for (let c = 0; c < GRID_SIZE; c++) {
                 let emptySpaces = 0;
+                // 从下往上统计空缺并下移
                 for (let r = GRID_SIZE - 1; r >= 0; r--) {
                     if (board[r][c] === null) {
                         emptySpaces++;
                     } else if (emptySpaces > 0) {
                         board[r + emptySpaces][c] = board[r][c];
                         board[r][c] = null;
+                        // 标记原有的方块下移后所在的新位置
+                        fallingGrid[r + emptySpaces][c] = true; 
                     }
                 }
                 
+                // 顶部生成填补的新方块
                 for(let r = 0; r < emptySpaces; r++) {
                     board[r][c] = Math.floor(Math.random() * CAT_TYPES.length);
+                    fallingGrid[r][c] = true;
                 }
             }
+            return fallingGrid;
         }
 
         function sleep(ms) {
