@@ -233,6 +233,20 @@
       overflow: hidden;
     }
 
+    .twist-slide::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: min(92%, 340px);
+      height: 40%;
+      background: url("./assets/images/second-bakground.png") center bottom / contain no-repeat;
+      pointer-events: none;
+      z-index: 0;
+      filter: drop-shadow(0 14px 24px rgba(76,124,134,0.18));
+    }
+
     .side-actions {
       position: absolute;
       right: calc(42px + var(--safe-right));
@@ -1006,11 +1020,27 @@
     }
 
     .screw-screen {
+      position: relative;
       padding: 18px;
       gap: 14px;
     }
 
+    .screw-home-art {
+      position: absolute;
+      left: 50%;
+      bottom: 6px;
+      width: min(92%, 340px);
+      max-height: 40%;
+      object-fit: contain;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 0;
+      filter: drop-shadow(0 14px 24px rgba(76, 124, 134, 0.18));
+    }
+
     .screw-hero {
+      position: relative;
+      z-index: 1;
       padding: 18px;
       background: rgba(255, 255, 255, 0.46);
       color: #20343d;
@@ -1894,8 +1924,8 @@
         <div class="game-shell"><div class="game-shell-inner" id="game-sixth"></div></div>
         <div class="sixth-swipe-hint" id="sixthSwipeHint">再滑一次切换游戏</div>
       </section>
-      <section class="game-slide" data-index="1" data-game-id="quiz">
-        <div class="game-shell"><div class="game-shell-inner" id="game-quiz"></div></div>
+      <section class="game-slide twist-slide" data-index="1" data-game-id="twist">
+        <div class="game-shell"><div class="game-shell-inner" id="game-twist"></div></div>
       </section>
       <section class="game-slide" data-index="2" data-game-id="fifth">
         <div class="game-shell"><div class="game-shell-inner" id="game-fifth"></div></div>
@@ -1906,11 +1936,11 @@
       <section class="game-slide" data-index="4" data-game-id="wangma">
         <div class="game-shell"><div class="game-shell-inner" id="game-wangma"></div></div>
       </section>
-      <section class="game-slide" data-index="5" data-game-id="twist">
-        <div class="game-shell"><div class="game-shell-inner" id="game-twist"></div></div>
+      <section class="game-slide" data-index="5" data-game-id="quiz">
+        <div class="game-shell"><div class="game-shell-inner" id="game-quiz"></div></div>
       </section>
-      <section class="game-slide" data-index="6" data-game-id="eighth">
-        <div class="game-shell"><div class="game-shell-inner" id="game-eighth"></div></div>
+      <section class="game-slide" data-index="6" data-game-id="seventh">
+        <div class="game-shell"><div class="game-shell-inner" id="game-seventh"></div></div>
       </section>
     </main>
 
@@ -1968,13 +1998,13 @@
         ]
       },
       {
-        id: "quiz",
-        title: "赛博命格测试",
-        desc: "4 道快答题，破电脑给你打印网感命格单。",
+        id: "twist",
+        title: "别笑，你也过不了这一关",
+        desc: "按层拆果冻钉，别把自己拧进情绪死结。",
         rule: [
-          "每题都要立刻选，不必追求正确。",
-          "超时会被系统判定为灵魂卡顿。",
-          "最终命格由网感、抽象、尴尬三项综合决定。"
+          "优先点当前露在外面的果冻钉。",
+          "点到被挡住的钉子会涨拧巴值。",
+          "拆完得更高分，拧巴值爆表会提前失败。"
         ]
       },
       {
@@ -2008,17 +2038,17 @@
         ]
       },
       {
-        id: "twist",
-        title: "果冻风猫爪拧螺丝",
-        desc: "按层拆果冻钉，别把自己拧进情绪死结。",
+        id: "quiz",
+        title: "赛博命格测试",
+        desc: "4 道快答题，破电脑给你打印网感命格单。",
         rule: [
-          "优先点当前露在外面的果冻钉。",
-          "点到被挡住的钉子会涨拧巴值。",
-          "拆完得更高分，拧巴值爆表会提前失败。"
+          "每题都要立刻选，不必追求正确。",
+          "超时会被系统判定为灵魂卡顿。",
+          "最终命格由网感、抽象、尴尬三项综合决定。"
         ]
       },
       {
-        id: "eighth",
+        id: "seventh",
         title: "猫meme消消乐",
         desc: "交换相邻猫图，凑出三连就能消除。",
         rule: [
@@ -2077,7 +2107,7 @@
       beans: createBeansGame,
       fifth: createFifthGame,
       sixth: createSixthGame,
-      eighth: createEighthGame
+      seventh: createEighthGame
     };
 
     const gameInstances = new Map();
@@ -4179,13 +4209,12 @@
         clearTimer();
         container.innerHTML = `
           <div class="game-screen screw-screen game-screen-scroll">
-            <div class="tag-list">
-              <span class="tag" style="background:rgba(255,255,255,.72);">🐾 LEVEL 02 🐾</span>
-            </div>
+            <div class="tag-list"></div>
+            <img class="screw-home-art" src="./assets/images/second-bakground.png" alt="拧螺丝主题插画">
             <div class="game-panel screw-hero">
               <p class="game-copy">越想拧明白，越容易拧巴。</p>
-              <h2 class="game-heading" style="color:#20343d;">果冻风猫爪拧螺丝</h2>
-              <p class="game-copy" style="margin-top:10px;">按层拆果冻钉，别硬点被压住的那颗。24 秒内拆得越干净，抗拧巴指数越高。</p>
+              <h2 class="game-heading" style="color:#20343d;">别笑，你也过不了第二关</h2>
+              <p class="game-copy" style="margin-top:10px;">专治各种拧巴。按层拆果冻钉，别硬点被压住的那颗。24 秒内拆得越干净，抗拧巴指数越高。</p>
               <div class="modal-actions" style="margin-top:16px;">
                 <button class="game-button primary" id="twistStartButton" style="background:linear-gradient(90deg,#61a9ff 0%, #22d3ae 100%);color:#fff;">▶ 拆解开始</button>
               </div>
@@ -4212,9 +4241,6 @@
               <div class="screw-status-card">剩余时间<br><strong>${state.timeLeft}s</strong></div>
               <div class="screw-status-card">已拆果冻钉<br><strong>${state.removed.length}/6</strong></div>
               <div class="screw-status-card">拧巴值<br><strong>${state.awkward}/100</strong></div>
-            </div>
-            <div class="game-panel screw-hero">
-              <p class="game-copy">当前提示：${escapeHtml(getHintText())}</p>
             </div>
             <div class="screw-board">
               <div class="plate pink ${removedPlateSet.has("pink") ? "is-removed" : ""}"></div>
@@ -4275,12 +4301,6 @@
             state.removedPlates.push(plateId);
           }
         });
-      }
-
-      function getHintText() {
-        if (!state.removedPlates.includes("pink")) return "先拆外层猫爪板上的粉色钉。";
-        if (!state.removedPlates.includes("green")) return "粉层松了，继续拆中层绿色钉。";
-        return "最后两颗底层钉已经露出来了，别犹豫。";
       }
 
       function finishGame(reason) {
@@ -4586,13 +4606,12 @@
       }
 
       function mount() {
-        container.className = "game-shell-inner eighth-root";
+        container.className = "game-shell-inner seventh-root";
         container.innerHTML = `
           <div style="display:flex;flex-direction:column;height:100%;gap:10px;padding:10px;box-sizing:border-box;">
             <div class="game-panel" style="padding:12px 14px;background:rgba(255,255,255,0.92);flex:0 0 auto;">
             <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
               <div>
-                <div style="font-size:10px;font-weight:900;letter-spacing:0.08em;color:#64748b;text-transform:uppercase;">LEVEL 08</div>
                 <h2 class="game-heading" style="margin:4px 0 4px;color:#111827;">猫meme消消乐</h2>
                 <p class="game-copy" style="margin:0;color:#4b5563;">交换相邻猫图，凑出三连就能消除。</p>
               </div>
@@ -4602,7 +4621,7 @@
               </div>
             </div>
             <iframe
-              src="./eighth.html"
+              src="./seventh.html"
               title="猫meme消消乐"
               style="flex:1 1 auto;width:100%;min-height:0;border:4px solid #111827;border-radius:24px;background:#fff;box-shadow:4px 4px 0 #111827;"
             ></iframe>
