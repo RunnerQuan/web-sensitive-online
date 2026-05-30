@@ -1547,6 +1547,15 @@
       will-change: top, left, transform;
     }
 
+    .sixth-fruit img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: block;
+      pointer-events: none;
+    }
+
     .sixth-preview {
       position: absolute;
       z-index: 6;
@@ -2603,18 +2612,19 @@
     }
 
     function createSixthGame(container, context) {
+      const DRAGON_ASSET_BASE = "./assets/images/baby-dragon/";
       const FRUITS = [
-        { level: 0, r: 16, color: "#e2b4f9", icon: "●", iconColor: "#fff", size: 16 },
-        { level: 1, r: 24, color: "#ff9e9e", icon: "🍎", iconColor: "#fff", size: 22 },
-        { level: 2, r: 34, color: "#ffcc66", icon: "🍋", iconColor: "#fff", size: 28 },
-        { level: 3, r: 44, color: "#ffff66", icon: "☀", iconColor: "#b8860b", size: 34 },
-        { level: 4, r: 56, color: "#b3e6b3", icon: "🍈", iconColor: "#fff", size: 42 },
-        { level: 5, r: 70, color: "#ff6b6b", icon: "🍎", iconColor: "#fff", size: 50 },
-        { level: 6, r: 86, color: "#ffccd5", icon: "🍑", iconColor: "#fff", size: 58 },
-        { level: 7, r: 104, color: "#ffe066", icon: "👑", iconColor: "#fff", size: 66 },
-        { level: 8, r: 124, color: "#e6dace", icon: "⚽", iconColor: "#fff", size: 74 },
-        { level: 9, r: 148, color: "#ff9999", icon: "🌙", iconColor: "#fff", size: 80 },
-        { level: 10, r: 175, color: "#fcd34d", icon: "🐉", iconColor: "#d97706", size: 88 }
+        { level: 0, r: 16, image: DRAGON_ASSET_BASE + "0.jpg" },
+        { level: 1, r: 24, image: DRAGON_ASSET_BASE + "1.jpg" },
+        { level: 2, r: 34, image: DRAGON_ASSET_BASE + "2.jpg" },
+        { level: 3, r: 44, image: DRAGON_ASSET_BASE + "3.jpg" },
+        { level: 4, r: 56, image: DRAGON_ASSET_BASE + "4.jpg" },
+        { level: 5, r: 70, image: DRAGON_ASSET_BASE + "5.jpg" },
+        { level: 6, r: 86, image: DRAGON_ASSET_BASE + "6.jpg" },
+        { level: 7, r: 104, image: DRAGON_ASSET_BASE + "7.jpg" },
+        { level: 8, r: 124, image: DRAGON_ASSET_BASE + "8.jpg" },
+        { level: 9, r: 148, image: DRAGON_ASSET_BASE + "9.jpg" },
+        { level: 10, r: 175, image: DRAGON_ASSET_BASE + "10.jpg" }
       ];
       const Engine = window.Matter && Matter.Engine;
       const Runner = window.Matter && Matter.Runner;
@@ -2655,6 +2665,7 @@
             </div>
             <div class="sixth-overlay" data-start>
               <div class="game-panel sixth-panel" style="max-width:340px;padding:18px;text-align:center;">
+                <img src="${DRAGON_ASSET_BASE}2.jpg" alt="大奶龙封面" style="width:144px;height:144px;object-fit:cover;border-radius:50%;display:block;margin:0 auto 14px;box-shadow:0 16px 28px rgba(251,146,60,0.32);border:4px solid rgba(255,255,255,0.82);">
                 <p class="game-copy" style="margin:0;color:#d97706;font-weight:800;">合成大奶龙</p>
                 <h2 class="game-heading" style="margin-top:6px;color:#ea580c;">拖动合成挑战</h2>
                 <p class="game-copy" style="margin-top:10px;">拖动投放小奶龙，两个一样的碰到一起就会长大。顶到警戒线就结束。</p>
@@ -2825,10 +2836,8 @@
         refs.preview.style.left = state.dropX - conf.r + "px";
         refs.preview.style.top = "36px";
         refs.preview.style.display = "flex";
-        refs.preview.style.background = "radial-gradient(circle at 30% 30%, " + conf.color + ", #00000040)";
-        refs.preview.style.color = conf.iconColor;
-        refs.preview.style.fontSize = conf.size + "px";
-        refs.preview.textContent = conf.icon;
+        refs.preview.style.background = "#fff7ed";
+        refs.preview.innerHTML = `<img src="${conf.image}" alt="奶龙等级 ${conf.level}">`;
         refs.aim.style.left = state.dropX + "px";
         refs.aim.style.display = "block";
       }
@@ -2863,10 +2872,8 @@
         el.style.height = conf.r * 2 + "px";
         el.style.left = x - conf.r + "px";
         el.style.top = y - conf.r + "px";
-        el.style.background = "radial-gradient(circle at 30% 30%, " + conf.color + ", #00000040)";
-        el.style.color = conf.iconColor;
-        el.style.fontSize = conf.size + "px";
-        el.textContent = conf.icon;
+        el.style.background = "#fff7ed";
+        el.innerHTML = `<img src="${conf.image}" alt="奶龙等级 ${conf.level}">`;
         refs.area.appendChild(el);
         const body = Bodies.circle(x, y, conf.r, {
           restitution: 0.2,
