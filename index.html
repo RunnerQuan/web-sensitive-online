@@ -373,8 +373,8 @@
       align-items: center;
       justify-content: center;
       padding: calc(20px + var(--safe-top)) calc(16px + var(--safe-right)) calc(20px + var(--safe-bottom)) calc(16px + var(--safe-left));
-      background: rgba(2, 4, 10, 0.7);
-      backdrop-filter: blur(8px);
+      background: rgba(255, 244, 220, 0.72);
+      backdrop-filter: blur(10px);
     }
 
     .modal.show {
@@ -386,13 +386,14 @@
       max-height: min(84dvh, 760px);
       overflow: auto;
       border-radius: 28px;
-      border: 1px solid var(--line);
+      border: 4px solid #171717;
       background:
-        radial-gradient(circle at top right, rgba(100, 245, 255, 0.14), transparent 30%),
-        radial-gradient(circle at bottom left, rgba(255, 79, 138, 0.18), transparent 26%),
-        var(--panel-strong);
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+        radial-gradient(circle at top right, rgba(255, 217, 61, 0.55), transparent 32%),
+        radial-gradient(circle at bottom left, rgba(77, 150, 255, 0.28), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 225, 0.98));
+      box-shadow: 10px 10px 0 rgba(23, 23, 23, 0.92);
       scrollbar-width: none;
+      color: #1f2937;
     }
 
     .modal-card::-webkit-scrollbar {
@@ -411,25 +412,28 @@
     .modal-title {
       font-size: 22px;
       font-weight: 900;
+      color: #111827;
     }
 
     .modal-close {
       width: 40px;
       height: 40px;
-      border: 0;
+      border: 3px solid #171717;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.08);
+      background: #ffffff;
+      color: #111827;
+      box-shadow: 3px 3px 0 rgba(23, 23, 23, 0.9);
       cursor: pointer;
     }
 
     .modal-body {
       padding: 0 18px 18px;
-      color: var(--muted);
+      color: #334155;
       line-height: 1.55;
     }
 
     .modal-body strong {
-      color: var(--text);
+      color: #0f172a;
     }
 
     .result-grid {
@@ -440,9 +444,10 @@
 
     .result-card {
       padding: 14px;
-      border: 1px solid var(--line);
+      border: 3px solid #171717;
       border-radius: 20px;
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 4px 4px 0 rgba(23, 23, 23, 0.85);
     }
 
     .result-card h3,
@@ -452,7 +457,7 @@
 
     .result-card h3 {
       font-size: 15px;
-      color: var(--text);
+      color: #111827;
       margin-bottom: 6px;
     }
 
@@ -469,9 +474,9 @@
       min-height: 30px;
       padding: 0 10px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: var(--text);
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.22), rgba(250, 204, 21, 0.3));
+      border: 2px solid #171717;
+      color: #0f172a;
       font-size: 12px;
     }
 
@@ -508,15 +513,17 @@
 
     .modal-button.primary,
     .game-button.primary {
-      color: #051018;
-      background: linear-gradient(135deg, var(--accent-cyan), #9cffeb);
+      color: #111827;
+      background: linear-gradient(135deg, #22d3ee, #fde047);
+      box-shadow: 4px 4px 0 rgba(23, 23, 23, 0.88);
     }
 
     .modal-button.secondary,
     .game-button.secondary {
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #111827;
+      background: #ffffff;
+      border: 3px solid #171717;
+      box-shadow: 4px 4px 0 rgba(23, 23, 23, 0.88);
     }
 
     .float-layer {
@@ -1612,6 +1619,28 @@
       background: #f8fbff;
     }
 
+    .sixth-swipe-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 12px 22px;
+      border-radius: 28px;
+      pointer-events: none;
+      z-index: 900;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .sixth-swipe-hint.visible {
+      opacity: 1;
+    }
+
     .seventh-board {
       display: grid;
       grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -1668,6 +1697,14 @@
       inset: 0;
       pointer-events: none;
       z-index: 6;
+    }
+
+    .embed-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: transparent;
     }
 
     @media (max-width: 430px) {
@@ -1766,25 +1803,29 @@
     </header>
 
     <main id="feed" class="feed">
-      <section class="game-slide" data-index="0" data-game-id="quiz">
+      <section class="game-slide" data-index="0" data-game-id="sixth">
+        <div class="game-shell"><div class="game-shell-inner" id="game-sixth"></div></div>
+        <div class="sixth-swipe-hint" id="sixthSwipeHint">再滑一次切换游戏 ↓</div>
+      </section>
+      <section class="game-slide" data-index="1" data-game-id="quiz">
         <div class="game-shell"><div class="game-shell-inner" id="game-quiz"></div></div>
       </section>
-      <section class="game-slide" data-index="1" data-game-id="twist">
-        <div class="game-shell"><div class="game-shell-inner" id="game-twist"></div></div>
-      </section>
-      <section class="game-slide" data-index="2" data-game-id="wangma">
-        <div class="game-shell"><div class="game-shell-inner" id="game-wangma"></div></div>
+      <section class="game-slide" data-index="2" data-game-id="fifth">
+        <div class="game-shell"><div class="game-shell-inner" id="game-fifth"></div></div>
       </section>
       <section class="game-slide" data-index="3" data-game-id="beans">
         <div class="game-shell"><div class="game-shell-inner" id="game-beans"></div></div>
       </section>
-      <section class="game-slide" data-index="4" data-game-id="fifth">
-        <div class="game-shell"><div class="game-shell-inner" id="game-fifth"></div></div>
+      <section class="game-slide" data-index="4" data-game-id="wangma">
+        <div class="game-shell"><div class="game-shell-inner" id="game-wangma"></div></div>
       </section>
-      <section class="game-slide" data-index="5" data-game-id="sixth">
-        <div class="game-shell"><div class="game-shell-inner" id="game-sixth"></div></div>
+      <section class="game-slide" data-index="5" data-game-id="twist">
+        <div class="game-shell"><div class="game-shell-inner" id="game-twist"></div></div>
       </section>
-      <section class="game-slide" data-index="6" data-game-id="seventh">
+      <section class="game-slide" data-index="6" data-game-id="eighth">
+        <div class="game-shell"><div class="game-shell-inner" id="game-eighth"></div></div>
+      </section>
+      <section class="game-slide" data-index="7" data-game-id="seventh">
         <div class="game-shell"><div class="game-shell-inner" id="game-seventh"></div></div>
       </section>
     </main>
@@ -1809,9 +1850,9 @@
     </aside>
 
     <footer class="game-caption">
-      <h2 id="gameTitle">赛博命格显化</h2>
+      <h2 id="gameTitle">合成大奶龙</h2>
       <div class="caption-row">
-        <p id="gameDesc">4 道快答题，破电脑给你打印网感命格单。</p>
+        <p id="gameDesc">拖动投放小奶龙，撞出更大的龙。</p>
         <span class="status-pill" id="gameStatusText">未开始</span>
       </div>
     </footer>
@@ -1833,43 +1874,23 @@
     const APP_STORAGE_KEY = "hakidou_app_state_v1";
     const FEED_META = [
       {
+        id: "sixth",
+        title: "合成大奶龙",
+        desc: "拖动投放小奶龙，撞出更大的龙。",
+        rule: [
+          "拖动投放预览球，碰到相同等级会合成升级。",
+          "顶部警戒线亮红就代表快要顶住了。",
+          "堆得越高分越多，顶爆就结束。"
+        ]
+      },
+      {
         id: "quiz",
-        title: "赛博命格显化",
+        title: "赛博命格测试",
         desc: "4 道快答题，破电脑给你打印网感命格单。",
         rule: [
           "每题都要立刻选，不必追求正确。",
           "超时会被系统判定为灵魂卡顿。",
           "最终命格由网感、抽象、尴尬三项综合决定。"
-        ]
-      },
-      {
-        id: "twist",
-        title: "拧巴工坊",
-        desc: "按层拆果冻钉，别把自己拧进情绪死结。",
-        rule: [
-          "优先点当前露在外面的果冻钉。",
-          "点到被挡住的钉子会涨拧巴值。",
-          "拆完得更高分，拧巴值爆表会提前失败。"
-        ]
-      },
-      {
-        id: "wangma",
-        title: "短剧观察室",
-        desc: "3 幕豪门抽象秀，选出王妈最体面的反应。",
-        rule: [
-          "每一幕选一个反应。",
-          "选完会立刻收到吐槽反馈。",
-          "最后根据清醒值、体面值和吃瓜值结算称号。"
-        ]
-      },
-      {
-        id: "beans",
-        title: "绿豆接接乐",
-        desc: "左右拖动小绿猫接豆，绿豆加分，红豆扣分。",
-        rule: [
-          "按住底部控制区左右拖动。",
-          "绿豆 +10 分，红豆 -8 分。",
-          "结果页会停留在当前屏，想继续就上滑。"
         ]
       },
       {
@@ -1883,13 +1904,43 @@
         ]
       },
       {
-        id: "sixth",
-        title: "合成大奶龙",
-        desc: "拖动投放小奶龙，撞出更大的龙。",
+        id: "beans",
+        title: "绿豆接接乐",
+        desc: "左右拖动小绿猫接豆，绿豆加分，红豆扣分。",
         rule: [
-          "拖动投放预览球，碰到相同等级会合成升级。",
-          "顶部警戒线亮红就代表快要顶住了。",
-          "堆得越高分越多，顶爆就结束。"
+          "按住底部控制区左右拖动。",
+          "绿豆 +10 分，红豆 -8 分。",
+          "结果页会停留在当前屏，想继续就上滑。"
+        ]
+      },
+      {
+        id: "wangma",
+        title: "霸总王妈短剧观察",
+        desc: "3 幕豪门抽象秀，选出王妈最体面的反应。",
+        rule: [
+          "每一幕选一个反应。",
+          "选完会立刻收到吐槽反馈。",
+          "最后根据清醒值、体面值和吃瓜值结算称号。"
+        ]
+      },
+      {
+        id: "twist",
+        title: "果冻风猫爪拧螺丝",
+        desc: "按层拆果冻钉，别把自己拧进情绪死结。",
+        rule: [
+          "优先点当前露在外面的果冻钉。",
+          "点到被挡住的钉子会涨拧巴值。",
+          "拆完得更高分，拧巴值爆表会提前失败。"
+        ]
+      },
+      {
+        id: "eighth",
+        title: "猫meme消消乐",
+        desc: "经典三消猫 meme 版，错消会扣步数。",
+        rule: [
+          "相邻交换，凑成 3 个及以上相同猫 meme 即可消除。",
+          "正确消除不扣步数，错误操作会扣 1 步。",
+          "步数耗尽后结算本局得分。"
         ]
       },
       {
@@ -1952,6 +2003,7 @@
       beans: createBeansGame,
       fifth: createFifthGame,
       sixth: createSixthGame,
+      eighth: createEighthGame,
       seventh: createSeventhGame
     };
 
@@ -1959,6 +2011,8 @@
     let currentGameId = FEED_META[0].id;
     let currentIndex = 0;
     let observer = null;
+    let loopJumpLock = false;
+    let feedTouchStartY = 0;
 
       loadPersistedState();
     initApp();
@@ -1966,6 +2020,8 @@
     function initApp() {
       bindGlobalActions();
       bindFeedObserver();
+      bindLoopNavigation();
+      bindSixthSwipeGuard();
       activateGame(0);
     }
 
@@ -1999,6 +2055,99 @@
         threshold: [0.55, 0.7, 0.85]
       });
       elements.slides.forEach((slide) => observer.observe(slide));
+    }
+
+    function bindLoopNavigation() {
+      elements.feed.addEventListener("wheel", handleFeedWheelLoop, { passive: false });
+      elements.feed.addEventListener("touchstart", handleFeedTouchStart, { passive: true });
+      elements.feed.addEventListener("touchend", handleFeedTouchEnd, { passive: true });
+    }
+
+    function bindSixthSwipeGuard() {
+      const sixthSlide = document.querySelector('[data-game-id="sixth"]');
+      if (!sixthSlide) return;
+      const hint = document.getElementById("sixthSwipeHint");
+      let startY = 0;
+      let swipeCount = 0;
+      let resetTimer = null;
+
+      sixthSlide.addEventListener("touchstart", (e) => {
+        if (currentIndex !== 0 || !e.touches.length) return;
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+
+      sixthSlide.addEventListener("touchmove", (e) => {
+        if (currentIndex !== 0 || !e.touches.length) return;
+        const deltaY = startY - e.touches[0].clientY;
+        if (Math.abs(deltaY) < 40) return;
+        e.preventDefault();
+        if (swipeCount === 0) {
+          swipeCount = 1;
+          if (hint) hint.classList.add("visible");
+          clearTimeout(resetTimer);
+          resetTimer = setTimeout(() => {
+            swipeCount = 0;
+            if (hint) hint.classList.remove("visible");
+          }, 2500);
+        } else {
+          clearTimeout(resetTimer);
+          swipeCount = 0;
+          if (hint) hint.classList.remove("visible");
+          if (deltaY > 0) {
+            goToSlide(1);
+          } else {
+            loopToSlide(FEED_META.length - 1);
+          }
+        }
+      }, { passive: false });
+    }
+
+    function handleFeedWheelLoop(event) {
+      if (loopJumpLock) return;
+      if (currentIndex === FEED_META.length - 1 && event.deltaY > 0 && isFeedNearBottom()) {
+        event.preventDefault();
+        loopToSlide(0);
+        return;
+      }
+      if (currentIndex === 0 && event.deltaY < 0 && isFeedNearTop()) {
+        event.preventDefault();
+        loopToSlide(FEED_META.length - 1);
+      }
+    }
+
+    function handleFeedTouchStart(event) {
+      if (!event.changedTouches || !event.changedTouches.length) return;
+      feedTouchStartY = event.changedTouches[0].clientY;
+    }
+
+    function handleFeedTouchEnd(event) {
+      if (loopJumpLock || !event.changedTouches || !event.changedTouches.length) return;
+      const endY = event.changedTouches[0].clientY;
+      const deltaY = feedTouchStartY - endY;
+      if (currentIndex === FEED_META.length - 1 && deltaY > 32 && isFeedNearBottom()) {
+        loopToSlide(0);
+        return;
+      }
+      if (currentIndex === 0 && deltaY < -32 && isFeedNearTop()) {
+        loopToSlide(FEED_META.length - 1);
+      }
+    }
+
+    function isFeedNearBottom() {
+      return elements.feed.scrollTop + elements.feed.clientHeight >= elements.feed.scrollHeight - 24;
+    }
+
+    function isFeedNearTop() {
+      return elements.feed.scrollTop <= 24;
+    }
+
+    function loopToSlide(index) {
+      if (loopJumpLock) return;
+      loopJumpLock = true;
+      goToSlide(index, { behavior: "instant" });
+      window.setTimeout(() => {
+        loopJumpLock = false;
+      }, 420);
     }
 
     function handleFeedIntersections(entries) {
@@ -2145,7 +2294,7 @@
           "<span class='metric-pill'>得分 " + Number(state.score || 0) + "</span>",
           tags.map((tag) => "<span class='metric-pill'>" + escapeHtml(tag) + "</span>").join(""),
           "</div>",
-          "<p style='margin-top:10px;color:#fff;'>" + escapeHtml(title) + "</p>",
+          "<p style='margin-top:10px;color:#0f172a;'>" + escapeHtml(title) + "</p>",
           "</div>"
         ].join("");
       }).join("");
@@ -2191,10 +2340,11 @@
       persistState();
     }
 
-    function goToSlide(index) {
+    function goToSlide(index, options = {}) {
       const nextSlide = elements.slides[index];
       if (!nextSlide) return;
-      nextSlide.scrollIntoView({ behavior: "smooth", block: "start" });
+      const behavior = options.behavior || "smooth";
+      nextSlide.scrollIntoView({ behavior, block: "start" });
       activateGame(index);
     }
 
@@ -2318,7 +2468,7 @@
               <div class="fifth-start" data-start>
                 <div class="game-panel fifth-panel" style="max-width:340px;padding:18px;text-align:center;">
                   <p class="game-copy" style="margin:0;color:#92400e;font-weight:800;">抓梗鹅</p>
-                  <h2 class="game-heading" style="margin-top:6px;color:#1f2937;">热梗收纳挑战</h2>
+                  <h2 class="game-heading" style="margin:0;color:#1f2937;font-size:38px;">抓梗鹅</h2>
                   <p class="game-copy" style="margin-top:10px;">把热梗凑成三连，别让黑话把你的工位塞爆。最终分数会按剩余时间额外结算。</p>
                   <div class="modal-actions" style="margin-top:16px;">
                     <button class="game-button primary" data-start-btn style="background:linear-gradient(180deg,#fb923c,#ea580c);color:#fff;width:100%;">马上开抓 🎮</button>
@@ -2666,8 +2816,7 @@
             <div class="sixth-overlay" data-start>
               <div class="game-panel sixth-panel" style="max-width:340px;padding:18px;text-align:center;">
                 <img src="${DRAGON_ASSET_BASE}2.jpg" alt="大奶龙封面" style="width:144px;height:144px;object-fit:cover;border-radius:50%;display:block;margin:0 auto 14px;box-shadow:0 16px 28px rgba(251,146,60,0.32);border:4px solid rgba(255,255,255,0.82);">
-                <p class="game-copy" style="margin:0;color:#d97706;font-weight:800;">合成大奶龙</p>
-                <h2 class="game-heading" style="margin-top:6px;color:#ea580c;">拖动合成挑战</h2>
+                <h2 class="game-heading" style="margin:0;color:#ea580c;font-size:40px;">合成大奶龙</h2>
                 <p class="game-copy" style="margin-top:10px;">拖动投放小奶龙，两个一样的碰到一起就会长大。顶到警戒线就结束。</p>
                 <div class="modal-actions" style="margin-top:16px;">
                   <button class="game-button primary" data-start-btn style="background:linear-gradient(180deg,#fb923c,#ea580c);color:#fff;width:100%;">开始游戏</button>
@@ -3409,6 +3558,51 @@
       return { mount, start, pause, resume, reset, destroy, getState };
     }
 
+    function createEighthGame(container, context) {
+      let state = null;
+      let frameSeed = 0;
+
+      function getInitialState() {
+        return { phase: "embedded" };
+      }
+
+      function renderFrame() {
+        frameSeed += 1;
+        container.className = "game-shell-inner";
+        container.innerHTML = `<iframe class="embed-frame" src="./eighth.html?v=${frameSeed}" title="猫meme消消乐" loading="lazy"></iframe>`;
+      }
+
+      function mount() {
+        state = getInitialState();
+        renderFrame();
+      }
+
+      function start() {
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+      }
+
+      function pause() {
+      }
+
+      function resume() {
+      }
+
+      function reset() {
+        state = getInitialState();
+        renderFrame();
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+      }
+
+      function destroy() {
+      }
+
+      function getState() {
+        return state;
+      }
+
+      return { mount, start, pause, resume, reset, destroy, getState };
+    }
+
     function createQuizGame(container, context) {
       const questions = [
         {
@@ -3513,7 +3707,7 @@
               <div class="quiz-intro-hero">
                 <div>
                   <p class="quiz-intro-note" style="color:#171717;">正在连接你的赛博灵魂……</p>
-                  <h2 class="quiz-intro-title">网感测试.exe</h2>
+                  <h2 class="quiz-intro-title">赛博命格测试</h2>
                   <p class="quiz-intro-subtitle" style="color:#171717;">一个看起来像作业本边角料的网页小游戏。你应在 4 道抽象题里活下来，然后让破电脑给你生成命格。</p>
                 </div>
                 <div class="quiz-stickman-card">
@@ -3756,7 +3950,7 @@
             </div>
             <div class="game-panel screw-hero">
               <p class="game-copy">越想拧明白，越容易拧巴。</p>
-              <h2 class="game-heading" style="color:#20343d;">拧到刚刚好<br>就松手</h2>
+              <h2 class="game-heading" style="color:#20343d;">果冻风猫爪拧螺丝</h2>
               <p class="game-copy" style="margin-top:10px;">按层拆果冻钉，别硬点被压住的那颗。24 秒内拆得越干净，抗拧巴指数越高。</p>
               <div class="modal-actions" style="margin-top:16px;">
                 <button class="game-button primary" id="twistStartButton" style="background:linear-gradient(90deg,#61a9ff 0%, #22d3ae 100%);color:#fff;">▶ 拆解开始</button>
@@ -4019,7 +4213,7 @@
             </div>
             <div class="game-panel wangma-panel">
               <p class="game-copy" style="letter-spacing:3px;text-transform:uppercase;color:#b8862f;">Observation Record</p>
-              <h2 class="game-heading" style="color:#d99522;">王妈<br>别看了</h2>
+              <h2 class="game-heading" style="color:#d99522;">霸总王妈短剧观察</h2>
               <p class="game-copy" style="margin-top:12px;">霸总夫人秀恩爱观察实录。三幕短剧，每幕选一个最体面的反应。你的工作不是解决豪门，只是别让场面碎太快。</p>
               <div class="modal-actions" style="margin-top:16px;">
                 <button class="game-button primary" id="wangmaStartButton" style="background:linear-gradient(90deg,#fbdc6a,#f4cc45);color:#7a520d;">开始吃瓜…</button>
