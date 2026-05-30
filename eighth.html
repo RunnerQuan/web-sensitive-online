@@ -111,9 +111,9 @@
             <div class="absolute top-10 left-4 text-4xl text-nPink transform -rotate-12"><i class="fa-solid fa-star"></i></div>
             <div class="absolute bottom-32 right-8 text-5xl text-nBlue transform rotate-12"><i class="fa-solid fa-heart"></i></div>
             
-            <div class="relative w-48 h-48 mb-8 border-4 border-black rounded-full shadow-neo overflow-hidden bg-nGreen flex justify-center items-center z-10">
-                <img src="./assets/images/cat-meme/homepage.jpg" alt="Cat Meme" class="w-full h-full object-cover">
-            </div>
+                <div class="relative w-48 h-48 mb-8 border-4 border-black rounded-full shadow-neo overflow-hidden bg-nGreen flex justify-center items-center z-10">
+                <img src="./assets/images/logo.png" alt="homepage-logo" class="w-full h-full object-contain bg-white">
+                </div>
 
             <h1 class="text-6xl font-black text-center mb-6 text-stroke leading-tight z-10">
                 猫meme<br>消消乐
@@ -227,6 +227,7 @@
         const movesEl = document.getElementById('moves-display');
         const finalScoreEl = document.getElementById('final-score');
         const movesContainer = document.getElementById('moves-container');
+        const swipeRoot = document.getElementById('app-container');
         
         // Navigation Functions
         function switchScreen(screenId) {
@@ -250,6 +251,64 @@
             finalScoreEl.innerText = score;
             switchScreen('screen-result');
         }
+
+        let exitTouchStartX = 0;
+        let exitTouchStartY = 0;
+        let exitTouchArmed = false;
+        let exitTouchBlocked = false;
+        const EXIT_SWIPE_THRESHOLD = 36;
+
+        function notifyParentHome() {
+            window.parent.postMessage({ type: 'game-nav', target: 'sixth' }, '*');
+        }
+
+        function shouldBlockExitGesture(target) {
+            return !!target && !!target.closest && target.closest('#game-board, button, .neo-btn');
+        }
+
+        function handleExitTouchStart(event) {
+            if (!event.touches || event.touches.length !== 1) return;
+            exitTouchArmed = true;
+            exitTouchBlocked = shouldBlockExitGesture(event.target);
+            exitTouchStartX = event.touches[0].clientX;
+            exitTouchStartY = event.touches[0].clientY;
+        }
+
+        function handleExitTouchMove(event) {
+            if (!exitTouchArmed || exitTouchBlocked || !event.touches || event.touches.length !== 1) return;
+            const dx = event.touches[0].clientX - exitTouchStartX;
+            const dy = event.touches[0].clientY - exitTouchStartY;
+            if (dy > EXIT_SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+                event.preventDefault();
+            }
+        }
+
+        function handleExitTouchEnd(event) {
+            if (!exitTouchArmed || exitTouchBlocked || !event.changedTouches || !event.changedTouches.length) {
+                exitTouchArmed = false;
+                exitTouchBlocked = false;
+                return;
+            }
+            const dx = event.changedTouches[0].clientX - exitTouchStartX;
+            const dy = event.changedTouches[0].clientY - exitTouchStartY;
+            if (dy > EXIT_SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+                notifyParentHome();
+            }
+            exitTouchArmed = false;
+            exitTouchBlocked = false;
+        }
+
+        function handleExitWheel(event) {
+            if (event.deltaY > 18 && !shouldBlockExitGesture(event.target)) {
+                event.preventDefault();
+                notifyParentHome();
+            }
+        }
+
+        swipeRoot.addEventListener('touchstart', handleExitTouchStart, { passive: true });
+        swipeRoot.addEventListener('touchmove', handleExitTouchMove, { passive: false });
+        swipeRoot.addEventListener('touchend', handleExitTouchEnd, { passive: true });
+        swipeRoot.addEventListener('wheel', handleExitWheel, { passive: false });
 
         function updateStatus(isError = false) {
             scoreEl.innerText = score;

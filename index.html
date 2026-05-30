@@ -183,6 +183,10 @@
       touch-action: pan-y;
     }
 
+    .feed.sixth-swipe-lock {
+      touch-action: none;
+    }
+
     .feed::-webkit-scrollbar {
       width: 0;
       height: 0;
@@ -777,8 +781,10 @@
     }
 
     .quiz-result-card {
-      margin-top: auto;
+      margin-top: 0;
       padding: 18px;
+      display: grid;
+      gap: 14px;
       background: rgba(255, 251, 235, 0.94);
       border: 4px solid #171717;
       color: #171717;
@@ -787,6 +793,95 @@
     .quiz-result-card h3 {
       margin: 8px 0 6px;
       font-size: 28px;
+    }
+
+    .quiz-result-hero {
+      display: grid;
+      grid-template-columns: minmax(114px, 132px) 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .quiz-result-portrait {
+      position: relative;
+      min-height: 164px;
+      padding: 12px;
+      border: 4px solid #171717;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 5px 5px 0 rgba(23, 23, 23, 0.12);
+      background:
+        radial-gradient(circle at 24% 24%, rgba(255, 255, 255, 0.9), transparent 32%),
+        linear-gradient(145deg, #fff6cc, #dff2ff);
+    }
+
+    .quiz-result-portrait::after {
+      content: "火柴人画像";
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      padding: 2px 8px;
+      border: 2px solid #171717;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+
+    .quiz-result-portrait-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 132px;
+      padding-bottom: 18px;
+    }
+
+    .quiz-result-portrait-icon svg {
+      width: 100%;
+      height: 100%;
+      max-width: 110px;
+      max-height: 110px;
+      overflow: visible;
+    }
+
+    .quiz-result-copy {
+      display: grid;
+      gap: 8px;
+    }
+
+    .quiz-result-copy .game-copy {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .quiz-result-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .quiz-result-story,
+    .quiz-result-note {
+      padding: 14px;
+      border: 3px solid #171717;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 4px 4px 0 rgba(23, 23, 23, 0.08);
+    }
+
+    .quiz-result-story-title {
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(23, 23, 23, 0.68);
+    }
+
+    .quiz-result-meter {
+      margin-top: 2px;
     }
 
     .quiz-intro-hero {
@@ -1699,14 +1794,6 @@
       z-index: 6;
     }
 
-    .embed-frame {
-      width: 100%;
-      height: 100%;
-      border: 0;
-      display: block;
-      background: transparent;
-    }
-
     @media (max-width: 430px) {
       .game-shell {
         width: 100%;
@@ -1805,7 +1892,7 @@
     <main id="feed" class="feed">
       <section class="game-slide" data-index="0" data-game-id="sixth">
         <div class="game-shell"><div class="game-shell-inner" id="game-sixth"></div></div>
-        <div class="sixth-swipe-hint" id="sixthSwipeHint">再滑一次切换游戏 ↓</div>
+        <div class="sixth-swipe-hint" id="sixthSwipeHint">再滑一次切换游戏</div>
       </section>
       <section class="game-slide" data-index="1" data-game-id="quiz">
         <div class="game-shell"><div class="game-shell-inner" id="game-quiz"></div></div>
@@ -1824,9 +1911,6 @@
       </section>
       <section class="game-slide" data-index="6" data-game-id="eighth">
         <div class="game-shell"><div class="game-shell-inner" id="game-eighth"></div></div>
-      </section>
-      <section class="game-slide" data-index="7" data-game-id="seventh">
-        <div class="game-shell"><div class="game-shell-inner" id="game-seventh"></div></div>
       </section>
     </main>
 
@@ -1936,21 +2020,11 @@
       {
         id: "eighth",
         title: "猫meme消消乐",
-        desc: "经典三消猫 meme 版，错消会扣步数。",
+        desc: "交换相邻猫图，凑出三连就能消除。",
         rule: [
-          "相邻交换，凑成 3 个及以上相同猫 meme 即可消除。",
-          "正确消除不扣步数，错误操作会扣 1 步。",
-          "步数耗尽后结算本局得分。"
-        ]
-      },
-      {
-        id: "seventh",
-        title: "多巴胺连连看",
-        desc: "在限时内配对图标，清掉整张棋盘。",
-        rule: [
-          "先点一个，再找同图标配对。",
-          "最多只有 3 次重排机会。",
-          "在时间耗尽前清空棋盘就算赢。"
+          "点一张，再点相邻一张，或者直接滑动交换。",
+          "只有凑出三连才算有效消除。",
+          "20 步用完前清空棋盘就算赢。"
         ]
       }
     ];
@@ -2003,8 +2077,7 @@
       beans: createBeansGame,
       fifth: createFifthGame,
       sixth: createSixthGame,
-      eighth: createEighthGame,
-      seventh: createSeventhGame
+      eighth: createEighthGame
     };
 
     const gameInstances = new Map();
@@ -2013,6 +2086,12 @@
     let observer = null;
     let loopJumpLock = false;
     let feedTouchStartY = 0;
+    let sixthSwipeTargetIndex = null;
+    let sixthSwipeHintTimer = null;
+    let sixthSwipeLastWheelAt = 0;
+    const SIXTH_SWIPE_THRESHOLD = 40;
+    const SIXTH_SWIPE_CONFIRM_MS = 2200;
+    const SIXTH_WHEEL_GAP_MS = 160;
 
       loadPersistedState();
     initApp();
@@ -2021,7 +2100,6 @@
       bindGlobalActions();
       bindFeedObserver();
       bindLoopNavigation();
-      bindSixthSwipeGuard();
       activateGame(0);
     }
 
@@ -2060,58 +2138,24 @@
     function bindLoopNavigation() {
       elements.feed.addEventListener("wheel", handleFeedWheelLoop, { passive: false });
       elements.feed.addEventListener("touchstart", handleFeedTouchStart, { passive: true });
+      elements.feed.addEventListener("touchmove", handleFeedTouchMove, { passive: false });
       elements.feed.addEventListener("touchend", handleFeedTouchEnd, { passive: true });
-    }
-
-    function bindSixthSwipeGuard() {
-      const sixthSlide = document.querySelector('[data-game-id="sixth"]');
-      if (!sixthSlide) return;
-      const hint = document.getElementById("sixthSwipeHint");
-      let startY = 0;
-      let swipeCount = 0;
-      let resetTimer = null;
-
-      sixthSlide.addEventListener("touchstart", (e) => {
-        if (currentIndex !== 0 || !e.touches.length) return;
-        startY = e.touches[0].clientY;
-      }, { passive: true });
-
-      sixthSlide.addEventListener("touchmove", (e) => {
-        if (currentIndex !== 0 || !e.touches.length) return;
-        const deltaY = startY - e.touches[0].clientY;
-        if (Math.abs(deltaY) < 40) return;
-        e.preventDefault();
-        if (swipeCount === 0) {
-          swipeCount = 1;
-          if (hint) hint.classList.add("visible");
-          clearTimeout(resetTimer);
-          resetTimer = setTimeout(() => {
-            swipeCount = 0;
-            if (hint) hint.classList.remove("visible");
-          }, 2500);
-        } else {
-          clearTimeout(resetTimer);
-          swipeCount = 0;
-          if (hint) hint.classList.remove("visible");
-          if (deltaY > 0) {
-            goToSlide(1);
-          } else {
-            loopToSlide(FEED_META.length - 1);
-          }
-        }
-      }, { passive: false });
+      window.addEventListener("message", handleEmbeddedGameMessage);
     }
 
     function handleFeedWheelLoop(event) {
       if (loopJumpLock) return;
+      if (currentIndex === 0) {
+        const deltaY = event.deltaY;
+        if (Math.abs(deltaY) < 12) return;
+        event.preventDefault();
+        handleSixthSwipeDelta(deltaY, "wheel");
+        return;
+      }
       if (currentIndex === FEED_META.length - 1 && event.deltaY > 0 && isFeedNearBottom()) {
         event.preventDefault();
         loopToSlide(0);
         return;
-      }
-      if (currentIndex === 0 && event.deltaY < 0 && isFeedNearTop()) {
-        event.preventDefault();
-        loopToSlide(FEED_META.length - 1);
       }
     }
 
@@ -2120,16 +2164,33 @@
       feedTouchStartY = event.changedTouches[0].clientY;
     }
 
+    function handleFeedTouchMove(event) {
+      if (currentIndex !== 0 || !event.touches || !event.touches.length) return;
+      const deltaY = feedTouchStartY - event.touches[0].clientY;
+      if (Math.abs(deltaY) < SIXTH_SWIPE_THRESHOLD) return;
+      event.preventDefault();
+    }
+
     function handleFeedTouchEnd(event) {
       if (loopJumpLock || !event.changedTouches || !event.changedTouches.length) return;
       const endY = event.changedTouches[0].clientY;
       const deltaY = feedTouchStartY - endY;
+      if (currentIndex === 0) {
+        if (Math.abs(deltaY) < SIXTH_SWIPE_THRESHOLD) return;
+        handleSixthSwipeDelta(deltaY, "touch");
+        return;
+      }
       if (currentIndex === FEED_META.length - 1 && deltaY > 32 && isFeedNearBottom()) {
         loopToSlide(0);
         return;
       }
-      if (currentIndex === 0 && deltaY < -32 && isFeedNearTop()) {
-        loopToSlide(FEED_META.length - 1);
+    }
+
+    function handleEmbeddedGameMessage(event) {
+      const data = event.data;
+      if (!data || typeof data !== "object") return;
+      if (data.type === "game-nav" && data.target === "sixth") {
+        loopToSlide(0);
       }
     }
 
@@ -2148,6 +2209,69 @@
       window.setTimeout(() => {
         loopJumpLock = false;
       }, 420);
+    }
+
+    function updateFeedGestureMode() {
+      const isSixthGame = currentIndex === 0;
+      elements.feed.classList.toggle("sixth-swipe-lock", isSixthGame);
+      if (!isSixthGame) {
+        resetSixthSwipeGuard();
+      }
+    }
+
+    function resetSixthSwipeGuard() {
+      sixthSwipeTargetIndex = null;
+      sixthSwipeLastWheelAt = 0;
+      if (sixthSwipeHintTimer) {
+        window.clearTimeout(sixthSwipeHintTimer);
+        sixthSwipeHintTimer = null;
+      }
+      const hint = document.getElementById("sixthSwipeHint");
+      if (hint) hint.classList.remove("visible");
+    }
+
+    function armSixthSwipeGuard(targetIndex) {
+      sixthSwipeTargetIndex = targetIndex;
+      const hint = document.getElementById("sixthSwipeHint");
+      if (hint) {
+        hint.textContent = "再滑一次切换游戏";
+        hint.classList.add("visible");
+      }
+      if (sixthSwipeHintTimer) window.clearTimeout(sixthSwipeHintTimer);
+      sixthSwipeHintTimer = window.setTimeout(() => {
+        resetSixthSwipeGuard();
+      }, SIXTH_SWIPE_CONFIRM_MS);
+    }
+
+    function commitSixthSwipe(targetIndex) {
+      resetSixthSwipeGuard();
+      if (targetIndex === 1) {
+        goToSlide(1);
+      } else {
+        loopToSlide(FEED_META.length - 1);
+      }
+    }
+
+    function handleSixthSwipeDelta(deltaY, source) {
+      if (Math.abs(deltaY) < SIXTH_SWIPE_THRESHOLD) return false;
+      const targetIndex = deltaY > 0 ? 1 : FEED_META.length - 1;
+      if (source === "wheel") {
+        const now = Date.now();
+        const isNewGesture = now - sixthSwipeLastWheelAt > SIXTH_WHEEL_GAP_MS;
+        sixthSwipeLastWheelAt = now;
+        if (sixthSwipeTargetIndex === targetIndex && isNewGesture) {
+          commitSixthSwipe(targetIndex);
+        } else if (isNewGesture || sixthSwipeTargetIndex !== targetIndex) {
+          armSixthSwipeGuard(targetIndex);
+        }
+        return true;
+      }
+      if (sixthSwipeTargetIndex === targetIndex) {
+        commitSixthSwipe(targetIndex);
+      } else {
+        armSixthSwipeGuard(targetIndex);
+      }
+      return true;
     }
 
     function handleFeedIntersections(entries) {
@@ -2191,6 +2315,7 @@
       currentIndex = nextIndex;
       currentGameId = nextMeta.id;
       AppState.currentIndex = nextIndex;
+      updateFeedGestureMode();
       updateCaption();
       persistState();
     }
@@ -3558,51 +3683,6 @@
       return { mount, start, pause, resume, reset, destroy, getState };
     }
 
-    function createEighthGame(container, context) {
-      let state = null;
-      let frameSeed = 0;
-
-      function getInitialState() {
-        return { phase: "embedded" };
-      }
-
-      function renderFrame() {
-        frameSeed += 1;
-        container.className = "game-shell-inner";
-        container.innerHTML = `<iframe class="embed-frame" src="./eighth.html?v=${frameSeed}" title="猫meme消消乐" loading="lazy"></iframe>`;
-      }
-
-      function mount() {
-        state = getInitialState();
-        renderFrame();
-      }
-
-      function start() {
-        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
-      }
-
-      function pause() {
-      }
-
-      function resume() {
-      }
-
-      function reset() {
-        state = getInitialState();
-        renderFrame();
-        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
-      }
-
-      function destroy() {
-      }
-
-      function getState() {
-        return state;
-      }
-
-      return { mount, start, pause, resume, reset, destroy, getState };
-    }
-
     function createQuizGame(container, context) {
       const questions = [
         {
@@ -3638,6 +3718,122 @@
           ]
         }
       ];
+
+      function buildQuizProfile() {
+        if (state.scores.meme >= state.scores.abstract && state.scores.meme >= state.scores.awkward) {
+          return {
+            key: "meme",
+            ribbon: "网感爆表",
+            title: "高浓度网感幸存者",
+            summary: "你对抽象互联网的理解不是学来的，是刷出来的。",
+            story: "这位火柴人一边抖腿一边接梗，脑内已经把弹幕排成了队。",
+            advice: "继续刷梗没问题，但别在正式场合突然发疯。",
+            portraitBg: "radial-gradient(circle at 24% 24%, rgba(255,255,255,0.95), transparent 30%), linear-gradient(145deg, #dbeafe, #fef3c7)",
+            accent: "#2563eb",
+            tags: ["懂梗", "会接招", "弹幕脑"],
+            portrait: renderMemePortrait()
+          };
+        }
+        if (state.scores.abstract >= state.scores.meme && state.scores.abstract >= state.scores.awkward) {
+          return {
+            key: "abstract",
+            ribbon: "显化脑",
+            title: "赛博灵魂显化者",
+            summary: "你能把离谱话术和宇宙波动自然接上，显化得很稳定。",
+            story: "这位火柴人已经学会把模糊愿望说成宇宙公告，连空气都想替它加班。",
+            advice: "适合继续做梦，也适合把话说明白一点。",
+            portraitBg: "radial-gradient(circle at 24% 24%, rgba(255,255,255,0.95), transparent 30%), linear-gradient(145deg, #ede9fe, #cffafe)",
+            accent: "#7c3aed",
+            tags: ["会显化", "脑内放映", "宇宙工单"],
+            portrait: renderAbstractPortrait()
+          };
+        }
+        return {
+          key: "awkward",
+          ribbon: "社恐回收站",
+          title: "不拧巴哈基米",
+          summary: "你偶尔会尴尬，但懂得用哈基米精神把场面糊过去。",
+          story: "这位火柴人最擅长把社死现场悄悄糊平，再假装刚才什么都没发生。",
+          advice: "先别硬撑，适当装傻能保命。",
+          portraitBg: "radial-gradient(circle at 24% 24%, rgba(255,255,255,0.95), transparent 30%), linear-gradient(145deg, #fff7ed, #e2e8f0)",
+          accent: "#dc2626",
+          tags: ["会糊场", "轻微尴尬", "自救流"],
+          portrait: renderAwkwardPortrait()
+        };
+      }
+
+      function renderMemePortrait() {
+        return `
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="memeGlow" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#60a5fa"/>
+                <stop offset="100%" stop-color="#f59e0b"/>
+              </linearGradient>
+            </defs>
+            <circle cx="60" cy="60" r="54" fill="url(#memeGlow)" opacity="0.18"></circle>
+            <circle cx="60" cy="39" r="14" fill="none" stroke="#171717" stroke-width="4"></circle>
+            <path d="M60 53 L60 76" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M38 59 L60 66 L82 59" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M48 92 L60 76 L72 92" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M34 26 L26 14" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M86 28 L96 18" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M26 76 L16 80" stroke="#22c55e" stroke-width="4" stroke-linecap="round"></path>
+            <circle cx="50" cy="37" r="2.5" fill="#171717"></circle>
+            <circle cx="70" cy="37" r="2.5" fill="#171717"></circle>
+            <path d="M51 44 Q60 50 69 44" fill="none" stroke="#171717" stroke-width="3" stroke-linecap="round"></path>
+          </svg>
+        `;
+      }
+
+      function renderAbstractPortrait() {
+        return `
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="abstractGlow" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#a78bfa"/>
+                <stop offset="100%" stop-color="#22d3ee"/>
+              </linearGradient>
+            </defs>
+            <circle cx="60" cy="60" r="54" fill="url(#abstractGlow)" opacity="0.18"></circle>
+            <circle cx="60" cy="34" r="13" fill="none" stroke="#171717" stroke-width="4"></circle>
+            <path d="M60 47 L60 72" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M42 55 L60 58 L78 55" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M50 92 L60 72 L70 92" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+            <circle cx="46" cy="30" r="5" fill="#fff" stroke="#171717" stroke-width="3"></circle>
+            <circle cx="76" cy="24" r="7" fill="#fff" stroke="#171717" stroke-width="3"></circle>
+            <path d="M40 22 L30 14" stroke="#a78bfa" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M85 38 L98 34" stroke="#22d3ee" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M34 80 Q24 72 18 58" fill="none" stroke="#171717" stroke-width="3" stroke-linecap="round"></path>
+            <path d="M50 42 Q60 48 70 42" fill="none" stroke="#171717" stroke-width="3" stroke-linecap="round"></path>
+          </svg>
+        `;
+      }
+
+      function renderAwkwardPortrait() {
+        return `
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="awkwardGlow" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#fed7aa"/>
+                <stop offset="100%" stop-color="#cbd5e1"/>
+              </linearGradient>
+            </defs>
+            <circle cx="60" cy="60" r="54" fill="url(#awkwardGlow)" opacity="0.18"></circle>
+            <circle cx="58" cy="38" r="14" fill="none" stroke="#171717" stroke-width="4"></circle>
+            <path d="M58 52 L58 77" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M40 58 L58 64 L76 58" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M50 94 L58 77 L72 91" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M72 18 Q84 10 90 22" fill="none" stroke="#171717" stroke-width="3" stroke-linecap="round"></path>
+            <path d="M84 18 L90 14" stroke="#ef4444" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M44 30 L34 22" stroke="#f97316" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M32 84 Q24 70 28 56" fill="none" stroke="#171717" stroke-width="3" stroke-linecap="round"></path>
+            <circle cx="49" cy="36" r="2.5" fill="#171717"></circle>
+            <circle cx="68" cy="36" r="2.5" fill="#171717"></circle>
+            <path d="M49 45 Q58 40 67 45" fill="none" stroke="#171717" stroke-width="3" stroke-linecap="round"></path>
+          </svg>
+        `;
+      }
 
       let state = null;
       let timer = null;
@@ -3809,44 +4005,49 @@
 
       function finishQuiz() {
         clearTimer();
+        const profile = buildQuizProfile();
         const total = Math.round(state.scores.meme * 1.1 + state.scores.abstract + Math.max(0, 100 - state.scores.awkward) * 0.75);
-        let title = "抽象稳定发挥型";
-        let summary = "你不一定每次都解释自己，但你的网感大脑已经偷偷跑在前面。";
-        const tags = [];
-        if (state.scores.meme >= state.scores.abstract && state.scores.meme >= state.scores.awkward) {
-          title = "高浓度网感幸存者";
-          summary = "你对抽象互联网的理解不是学来的，是刷出来的。";
-          tags.push("网感过高");
-        } else if (state.scores.abstract >= state.scores.meme && state.scores.abstract >= state.scores.awkward) {
-          title = "赛博灵魂显化者";
-          summary = "你能把离谱话术和宇宙波动自然接上，显化得很稳定。";
-          tags.push("显化脑");
-        } else {
-          title = "不拧巴哈基米";
-          summary = "你偶尔会尴尬，但懂得用哈基米精神把场面糊过去。";
-          tags.push("会糊场");
-        }
-        tags.push("命格出单");
-        tags.push("总分 " + total);
+        const title = profile.title;
+        const summary = profile.summary;
+        const tags = [profile.ribbon, "命格出单", "总分 " + total];
         state.phase = "result";
         context.finishGame({ score: total, title, summary, tags });
         container.innerHTML = `
           <div class="game-screen quiz-screen game-screen-scroll">
             <div class="tag-list">
-              <span class="tag" style="background:#58a6ff;color:#fff;border-color:#171717;">命格单已打印</span>
+              <span class="tag" style="background:${profile.key === "meme" ? "#58a6ff" : profile.key === "abstract" ? "#a78bfa" : "#f59e0b"};color:#fff;border-color:#171717;">命格单已打印</span>
               <span class="tag" style="background:#7ae582;color:#171717;border-color:#171717;">总分 ${total}</span>
+              <span class="tag" style="background:#fff7ed;color:#171717;border-color:#171717;">${escapeHtml(profile.ribbon)}</span>
             </div>
             <div class="game-panel quiz-result-card">
-              <p class="game-copy" style="color:#171717;">你的赛博命格是</p>
-              <h3>${escapeHtml(title)}</h3>
-              <p class="game-copy" style="color:#171717;">${escapeHtml(summary)}</p>
-              <div class="quiz-meter" style="margin-top:18px;">
+              <div class="quiz-result-hero">
+                <div class="quiz-result-portrait" style="background:${profile.portraitBg};">
+                  <div class="quiz-result-portrait-icon">${profile.portrait}</div>
+                </div>
+                <div class="quiz-result-copy">
+                  <p class="game-copy" style="color:#171717;">你的赛博命格是</p>
+                  <h3 style="color:${profile.accent};">${escapeHtml(title)}</h3>
+                  <p class="game-copy" style="color:#171717;">${escapeHtml(summary)}</p>
+                  <div class="quiz-result-badges">
+                    ${profile.tags.map((tag, index) => `<span class="tag" style="background:${index === 0 ? "#fff7ed" : "#eff6ff"};color:#171717;border-color:#171717;">${escapeHtml(tag)}</span>`).join("")}
+                  </div>
+                </div>
+              </div>
+              <div class="quiz-result-story">
+                <div class="quiz-result-story-title">火柴人画像</div>
+                <p class="game-copy" style="margin:0;color:#171717;">${escapeHtml(profile.story)}</p>
+              </div>
+              <div class="quiz-meter quiz-result-meter">
                 <div class="quiz-meter-card">网感<b>${state.scores.meme}</b></div>
                 <div class="quiz-meter-card">抽象<b>${state.scores.abstract}</b></div>
                 <div class="quiz-meter-card">尴尬<b>${state.scores.awkward}</b></div>
               </div>
+              <div class="quiz-result-note">
+                <div class="quiz-result-story-title">命格建议</div>
+                <p class="game-copy" style="margin:0;color:#171717;">${escapeHtml(profile.advice)}</p>
+              </div>
               <div class="modal-actions" style="margin-top:16px;">
-                <button class="game-button" id="quizReplayButton" style="background:#ffd84d;color:#171717;border:3px solid #171717;">先看板规则</button>
+                <button class="game-button" id="quizReplayButton" style="background:#ffd84d;color:#171717;border:3px solid #171717;">再测一次</button>
               </div>
               <div class="hint-up" style="color:#171717;">↑ 继续上滑 · 下一刷还在等你</div>
             </div>
@@ -4339,6 +4540,59 @@
           </div>
         `;
         container.querySelector("#wangmaReplayButton").addEventListener("click", reset);
+      }
+
+      return { mount, start, pause, resume, reset, destroy, getState };
+    }
+
+    function createEighthGame(container, context) {
+      let state = null;
+
+      function getInitialState() {
+        return { phase: "home" };
+      }
+
+      function mount() {
+        container.className = "game-shell-inner eighth-root";
+        container.innerHTML = `
+          <div style="display:flex;flex-direction:column;height:100%;gap:10px;padding:10px;box-sizing:border-box;">
+            <div class="game-panel" style="padding:12px 14px;background:rgba(255,255,255,0.92);flex:0 0 auto;">
+            <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+              <div>
+                <div style="font-size:10px;font-weight:900;letter-spacing:0.08em;color:#64748b;text-transform:uppercase;">LEVEL 08</div>
+                <h2 class="game-heading" style="margin:4px 0 4px;color:#111827;">猫meme消消乐</h2>
+                <p class="game-copy" style="margin:0;color:#4b5563;">交换相邻猫图，凑出三连就能消除。</p>
+              </div>
+                <div style="width:56px;height:56px;border-radius:18px;background:#fde68a;display:flex;align-items:center;justify-content:center;border:4px solid #111827;box-shadow:3px 3px 0 #111827;">
+                  <img src="./assets/images/logo.png" alt="homepage-logo" style="width:38px;height:38px;object-fit:contain;display:block;">
+                </div>
+              </div>
+            </div>
+            <iframe
+              src="./eighth.html"
+              title="猫meme消消乐"
+              style="flex:1 1 auto;width:100%;min-height:0;border:4px solid #111827;border-radius:24px;background:#fff;box-shadow:4px 4px 0 #111827;"
+            ></iframe>
+          </div>
+        `;
+        state = getInitialState();
+        context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+      }
+
+      function start() {
+        context.setStatus("not-started");
+      }
+
+      function pause() {}
+
+      function resume() {}
+
+      function reset() {}
+
+      function destroy() {}
+
+      function getState() {
+        return state;
       }
 
       return { mount, start, pause, resume, reset, destroy, getState };
