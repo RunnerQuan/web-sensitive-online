@@ -112,7 +112,7 @@
             <div class="absolute bottom-32 right-8 text-5xl text-nBlue transform rotate-12"><i class="fa-solid fa-heart"></i></div>
             
                 <div class="relative w-48 h-48 mb-8 border-4 border-black rounded-full shadow-neo overflow-hidden bg-nGreen flex justify-center items-center z-10">
-                <img src="./assets/images/logo.png" alt="homepage-logo" class="w-full h-full object-contain bg-white">
+                <img src="./assets/images/cat-meme/homepage.jpg" alt="cat-meme-logo" class="w-full h-full object-cover bg-white">
                 </div>
 
             <h1 class="text-6xl font-black text-center mb-6 text-stroke leading-tight z-10">
@@ -220,6 +220,20 @@
         let moves = INITIAL_MOVES;
         let selectedTile = null; 
         let isAnimating = false;
+        const successAudio = new Audio('./assets/happy.m4a');
+        const errorAudio = new Audio('./assets/unhappy.m4a');
+        successAudio.preload = 'auto';
+        errorAudio.preload = 'auto';
+        successAudio.playsInline = true;
+        errorAudio.playsInline = true;
+
+        function playEffect(audio) {
+            audio.currentTime = 0;
+            const promise = audio.play();
+            if (promise && typeof promise.catch === 'function') {
+                promise.catch(() => {});
+            }
+        }
 
         // DOM Elements
         const boardEl = document.getElementById('game-board');
@@ -467,6 +481,7 @@
             if (matches.length > 0) {
                 // 正确消除：不扣除步数
                 updateStatus(false);
+                playEffect(successAudio);
                 await processMatches(matches);
             } else {
                 // 错误消除：换回原位
@@ -478,6 +493,7 @@
                 moves -= 1;
                 if (moves < 0) moves = 0; 
                 updateStatus(true);
+                playEffect(errorAudio);
                 
                 renderBoard();
                 isAnimating = false;

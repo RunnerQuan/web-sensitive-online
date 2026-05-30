@@ -2888,6 +2888,7 @@
 
     function createSixthGame(container, context) {
       const DRAGON_ASSET_BASE = "./assets/images/baby-dragon/";
+      const RESULT_AUDIO_SRC = "./assets/baby-dragon-laughter.m4a";
       const FRUITS = [
         { level: 0, r: 16, image: DRAGON_ASSET_BASE + "0.jpg" },
         { level: 1, r: 24, image: DRAGON_ASSET_BASE + "1.jpg" },
@@ -2913,6 +2914,8 @@
       let runnerActive = false;
       let resizeHandler = null;
       let mergeSet = new Set();
+      let resultAudio = null;
+      let resultAudioPlayed = false;
 
       function getInitialState() {
         return {
@@ -2931,6 +2934,9 @@
 
       function mount() {
         container.className = "game-shell-inner sixth-root";
+        resultAudio = new Audio(RESULT_AUDIO_SRC);
+        resultAudio.preload = "auto";
+        resultAudio.playsInline = true;
         container.innerHTML = `
           <div class="sixth-stage">
             <div class="sixth-area" data-area>
@@ -3016,6 +3022,7 @@
 
       function start() {
         context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
+        resetResultAudio();
         renderIntro();
       }
 
@@ -3042,6 +3049,7 @@
         runnerActive = false;
         clearWorld();
         state = getInitialState();
+        resetResultAudio();
         renderIntro();
         context.setSummary({ status: "not-started", finished: false, title: "", summary: "", tags: [], score: 0 });
       }
@@ -3050,6 +3058,7 @@
         if (runner) Runner.stop(runner);
         runnerActive = false;
         if (resizeHandler) window.removeEventListener("resize", resizeHandler);
+        stopResultAudio();
       }
 
       function getState() {
@@ -3235,6 +3244,30 @@
         refs.result.style.display = "flex";
         refs.preview.style.display = "none";
         refs.aim.style.display = "none";
+        playResultAudioOnce();
+      }
+
+      function playResultAudioOnce() {
+        if (!resultAudio || resultAudioPlayed) return;
+        resultAudioPlayed = true;
+        resultAudio.currentTime = 0;
+        const playResult = resultAudio.play();
+        if (playResult && typeof playResult.catch === "function") {
+          playResult.catch(() => {
+            resultAudioPlayed = false;
+          });
+        }
+      }
+
+      function resetResultAudio() {
+        resultAudioPlayed = false;
+        stopResultAudio();
+      }
+
+      function stopResultAudio() {
+        if (!resultAudio) return;
+        resultAudio.pause();
+        resultAudio.currentTime = 0;
       }
 
       return { mount, start, pause, resume, reset, destroy, getState };
@@ -4564,7 +4597,7 @@
                 <p class="game-copy" style="margin:0;color:#4b5563;">交换相邻猫图，凑出三连就能消除。</p>
               </div>
                 <div style="width:56px;height:56px;border-radius:18px;background:#fde68a;display:flex;align-items:center;justify-content:center;border:4px solid #111827;box-shadow:3px 3px 0 #111827;">
-                  <img src="./assets/images/logo.png" alt="homepage-logo" style="width:38px;height:38px;object-fit:contain;display:block;">
+                  <img src="./assets/images/cat-meme/homepage.jpg" alt="homepage-logo" style="width:38px;height:38px;object-fit:cover;display:block;">
                 </div>
               </div>
             </div>
@@ -4600,10 +4633,12 @@
 
     function createBeansGame(container, context) {
       const catGifSrc = "./assets/images/forth_cat.gif";
+      const bgmSrc = "./assets/hakimi-song.m4a";
       let state = null;
       let refs = null;
       let rafId = null;
       let resizeHandler = null;
+      let bgm = null;
 
       function getInitialState() {
         return {
@@ -4624,6 +4659,10 @@
       function mount() {
         container.className = "game-shell-inner bean-root";
         state = getInitialState();
+        bgm = new Audio(bgmSrc);
+        bgm.loop = true;
+        bgm.preload = "auto";
+        bgm.playsInline = true;
         container.innerHTML = `
           <div class="bean-stage">
             <canvas class="bean-canvas"></canvas>
@@ -4649,6 +4688,7 @@
 
       function start() {
         context.setStatus("not-started");
+        resetBgm();
         renderIntro();
         drawFrame();
       }
@@ -4656,6 +4696,7 @@
       function pause() {
         if (state.phase === "playing") {
           stopLoop();
+          stopBgm();
           context.setStatus("paused");
         }
       }
@@ -4664,6 +4705,7 @@
         if (state.phase === "playing") {
           state.lastFrame = performance.now();
           context.setStatus("playing");
+          playBgm();
           startLoop();
         }
       }
@@ -4671,6 +4713,7 @@
       function reset() {
         stopLoop();
         state = getInitialState();
+        resetBgm();
         renderIntro();
         drawFrame();
         context.setStatus("not-started");
@@ -4681,6 +4724,7 @@
         if (resizeHandler) {
           window.removeEventListener("resize", resizeHandler);
         }
+        stopBgm();
       }
 
       function getState() {
@@ -4759,6 +4803,7 @@
         state.lastFrame = performance.now();
         refs.overlay.innerHTML = "";
         context.setStatus("playing");
+        playBgm();
         renderHud();
         startLoop();
       }
@@ -4840,6 +4885,7 @@
 
       function finishRound() {
         stopLoop();
+        stopBgm();
         state.phase = "result";
         const score = state.score;
         let title = "绿豆型刷游圣体";
@@ -4871,6 +4917,25 @@
           </div>
         `;
         refs.overlay.querySelector("#beanReplayButton").addEventListener("click", reset);
+      }
+
+      function playBgm() {
+        if (!bgm) return;
+        bgm.currentTime = 0;
+        const promise = bgm.play();
+        if (promise && typeof promise.catch === "function") {
+          promise.catch(() => {});
+        }
+      }
+
+      function stopBgm() {
+        if (!bgm) return;
+        bgm.pause();
+        bgm.currentTime = 0;
+      }
+
+      function resetBgm() {
+        stopBgm();
       }
 
       function drawFrame() {
