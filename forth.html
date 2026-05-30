@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,shrink-to-fit=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#061700">
+<title>能量补给站——哈基米南北绿豆</title>
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  position: fixed;
+  top: 0; left: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro SC", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-overscroll-behavior: none;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  background: #061700;
+  -webkit-overflow-scrolling: none;
+}
+
+/* ============================================================
+   GAME ROOT — fullscreen with safe-area
+   ============================================================ */
+.game-root {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100dvh;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 1;
+}
+
+@supports (height: 100dvh) {
+  .game-root { height: 100dvh; }
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  .game-root {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+}
+
+/* ============================================================
+   CANVAS
+   ============================================================ */
+.game-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+.cat-gif-player {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 6;
+  transform-origin: center center;
+  display: none;
+  filter: drop-shadow(0 10px 10px rgba(0,0,0,0.14));
+}
+
+/* ============================================================
+   UI LAYER
+   ============================================================ */
+.ui-layer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+}
+.ui-layer > * { pointer-events: auto; }
+
+/* ============================================================
+   HUD — bigger for mobile
+   ============================================================ */
+.hud {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  padding: max(10px, 2.5vw) max(12px, 3vw) 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 15;
+}
+
+.hud-left {
+  display: flex;
+  flex-direction: column;
+  gap: max(5px, 1.2vw);
+}
+
+.hud-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2.5px solid #93C5FD;
+  border-radius: 50px;
+  padding: max(4px, 0.8vw) max(10px, 2.5vw);
+  font-size: max(12px, 3vw);
+  font-weight: 700;
+  color: #374151;
+  gap: max(5px, 1.2vw);
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.hud-badge-icon {
+  width: max(22px, 5.5vw);
+  height: max(22px, 5.5vw);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: max(11px, 2.8vw);
+  flex-shrink: 0;
+}
+
+.hud-badge-icon.energy { background: #3B82F6; }
+.hud-badge-icon.score-bg { background: #F59E0B; }
+
+.hud-score-fill-wrap {
+  width: max(48px, 12vw);
+  height: max(8px, 2vw);
+  background: #E5E7EB;
+  border-radius: 50px;
+  overflow: hidden;
+}
+
+.hud-score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #60A5FA, #22D3EE);
+  border-radius: 50px;
+  transition: width 0.3s;
+}
+
+.hud-timer-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.hud-timer-label {
+  font-size: max(10px, 2.5vw);
+  font-weight: 700;
+  color: #6B7280;
+}
+
+.hud-timer-circle {
+  width: max(50px, 13vw);
+  height: max(50px, 13vw);
+  background: #fff;
+  border: max(3px, 0.8vw) solid #1F2937;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.hud-timer-text {
+  font-size: max(20px, 5.5vw);
+  font-weight: 900;
+  color: #EF4444;
+  transition: color 0.3s;
+}
+
+.hud-timer-text.urgent {
+  animation: timerPulse 0.5s ease-in-out infinite;
+  color: #DC2626;
+}
+
+@keyframes timerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+/* ============================================================
+   DRAG HINT
+   ============================================================ */
+.drag-hint {
+  position: absolute;
+  bottom: 28%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 5;
+  animation: hintFloat 2.5s ease-in-out infinite;
+}
+
+.drag-hint span {
+  display: inline-block;
+  background: rgba(0,0,0,0.45);
+  color: rgba(255,255,255,0.75);
+  font-size: max(12px, 3vw);
+  font-weight: 700;
+  padding: max(6px, 1.5vw) max(16px, 4vw);
+  border-radius: 50px;
+  letter-spacing: 0.05em;
+}
+
+@keyframes hintFloat {
+  0%, 100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
+  50% { opacity: 0.85; transform: translateX(-50%) translateY(-6px); }
+}
+
+/* ============================================================
+   PHASE PROMPT
+   ============================================================ */
+.phase-prompt {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.75);
+  color: #FFD600;
+  font-weight: 800;
+  font-size: max(14px, 3.5vw);
+  padding: max(8px, 2vw) max(18px, 5vw);
+  border-radius: 50px;
+  border: 2px solid rgba(255,214,0,0.35);
+  white-space: nowrap;
+  animation: promptFade 2.5s ease-out forwards;
+  pointer-events: none;
+  z-index: 8;
+}
+
+@keyframes promptFade {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.85); }
+  10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  65% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ============================================================
+   INTRO / START SCREEN
+   ============================================================ */
+.intro-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(161,227,255,0.55) 0%, rgba(201,236,255,0.65) 40%, rgba(240,248,255,0.8) 78%, rgba(82,194,52,0.35) 100%);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+}
+
+.intro-card {
+  background: #fff;
+  border-radius: max(24px, 6vw);
+  padding: max(28px, 6vw) max(20px, 5vw) max(22px, 5vw);
+  margin: max(16px, 4vw);
+  text-align: center;
+  border: max(3.5px, 0.9vw) solid #1F2937;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.18), 0 0 0 max(6px, 1.5vw) rgba(255,138,0,0.12);
+  max-width: 320px;
+  width: 85%;
+}
+
+.intro-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #FFD600, #FF8A00);
+  color: #fff;
+  font-size: max(11px, 2.8vw);
+  font-weight: 800;
+  padding: max(4px, 1vw) max(14px, 3.5vw);
+  border-radius: 50px;
+  margin-bottom: max(10px, 2.5vw);
+  letter-spacing: 0.06em;
+  border: 2px solid rgba(255,255,255,0.5);
+  box-shadow: 0 4px 12px rgba(255,138,0,0.3);
+}
+
+.intro-icon {
+  width: max(64px, 16vw);
+  height: max(64px, 16vw);
+  background: linear-gradient(135deg, #FFD600, #FF8A00);
+  border-radius: 50%;
+  margin: 0 auto max(10px, 2.5vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: max(32px, 8vw);
+  border: max(3px, 0.8vw) solid #fff;
+  box-shadow: 0 8px 24px rgba(255,138,0,0.4);
+}
+
+.intro-card h2 {
+  font-size: max(20px, 5vw);
+  font-weight: 900;
+  color: #FF8A00;
+  margin-bottom: max(3px, 0.8vw);
+  line-height: 1.2;
+}
+
+.intro-card .subtitle {
+  font-size: max(12px, 3vw);
+  color: #9CA3AF;
+  font-weight: 700;
+  margin-bottom: max(10px, 2.5vw);
+}
+
+.intro-rules {
+  display: flex;
+  justify-content: center;
+  gap: max(16px, 4vw);
+  margin-bottom: max(16px, 4vw);
+}
+
+.intro-rule {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: max(3px, 0.8vw);
+}
+
+.intro-rule-dot {
+  width: max(28px, 7vw);
+  height: max(28px, 7vw);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: max(15px, 3.8vw);
+  border: 2px solid rgba(0,0,0,0.08);
+}
+.intro-rule-dot.green { background: #D1FAE5; }
+.intro-rule-dot.red  { background: #FEE2E2; }
+
+.intro-rule span {
+  font-size: max(11px, 2.8vw);
+  font-weight: 700;
+}
+.intro-rule span.green-text { color: #16A34A; }
+.intro-rule span.red-text  { color: #EF4444; }
+
+.intro-btn {
+  width: 100%;
+  min-height: max(52px, 13vw);
+  padding: max(12px, 3vw) max(18px, 4.5vw);
+  border-radius: max(16px, 4vw);
+  font-size: max(18px, 4.5vw);
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(180deg, #52C234 0%, #3DA528 100%);
+  color: #fff;
+  border: max(3px, 0.7vw) solid #2D8A1E;
+  box-shadow: 0 max(6px, 1.5vw) 0 #2D8A1E;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: max(6px, 1.5vw);
+  letter-spacing: 0.04em;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.intro-btn:active {
+  box-shadow: 0 max(2px, 0.5vw) 0 #2D8A1E;
+  transform: translateY(max(4px, 1vw)) scale(0.98);
+}
+
+/* ============================================================
+   RESULT OVERLAY
+   ============================================================ */
+.result-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.52);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+}
+
+.result-panel {
+  position: relative;
+  background: #fff;
+  border-radius: max(22px, 5vw);
+  padding: max(20px, 4.5vw) max(16px, 4vw) max(16px, 3.5vw);
+  margin: max(14px, 3.5vw);
+  text-align: center;
+  border: max(3px, 0.8vw) solid #1F2937;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+  width: 90%;
+  max-width: 330px;
+}
+
+.result-crown {
+  position: absolute;
+  top: max(-36px, -9vw);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max(72px, 18vw);
+  height: max(72px, 18vw);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FCD34D, #F59E0B);
+  border: max(3px, 0.8vw) solid #fff;
+  box-shadow: 0 8px 24px rgba(245,158,11,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: max(32px, 8vw);
+}
+
+.result-title {
+  margin-top: max(30px, 8vw);
+  font-size: max(24px, 6vw);
+  font-weight: 900;
+  text-shadow: -0.5px -0.5px 0 #fff, 0.5px -0.5px 0 #fff, -0.5px 0.5px 0 #fff, 0.5px 0.5px 0 #fff;
+  line-height: 1.2;
+}
+.result-title.low  { color: #EF4444; }
+.result-title.mid  { color: #F59E0B; }
+.result-title.high { color: #22C55E; }
+.result-title.top  { color: #8B5CF6; }
+
+.result-subtitle {
+  font-size: max(12px, 3vw);
+  color: #9CA3AF;
+  font-weight: 700;
+  margin-top: max(2px, 0.5vw);
+}
+
+.result-stats {
+  background: #F9FAFB;
+  border-radius: max(14px, 3.5vw);
+  padding: max(12px, 3vw);
+  margin-top: max(12px, 3vw);
+  border: 2px solid #F3F4F6;
+  display: flex;
+  flex-direction: column;
+  gap: max(8px, 2vw);
+}
+
+.result-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: max(7px, 1.8vw);
+  border-bottom: 2px solid #F3F4F6;
+}
+.result-stat-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.result-stat-label {
+  display: flex; align-items: center; gap: max(6px, 1.5vw);
+  font-size: max(12.5px, 3.2vw); font-weight: 700; color: #6B7280;
+}
+
+.stat-icon {
+  width: max(26px, 6.5vw); height: max(26px, 6.5vw);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: max(12px, 3vw);
+  flex-shrink: 0;
+}
+.stat-icon.clock  { background: #DBEAFE; }
+.stat-icon.green  { background: #D1FAE5; }
+.stat-icon.red    { background: #FEE2E2; }
+.stat-icon.rating { background: #FEF3C7; }
+
+.result-stat-value {
+  font-size: max(18px, 4.8vw); font-weight: 900; color: #1F2937;
+}
+.result-stat-value.green-text { color: #16A34A; }
+.result-stat-value.red-text   { color: #EF4444; }
+.result-stat-value.gold-text  { color: #F59E0B; }
+
+.result-comment {
+  margin-top: max(9px, 2.2vw);
+  font-size: max(12px, 3vw);
+  color: #9CA3AF;
+  font-weight: 600; line-height: 1.55;
+}
+
+.result-buttons {
+  margin-top: max(12px, 3vw);
+  display: flex; flex-direction: column; gap: max(6px, 1.5vw);
+}
+
+.pixel-button {
+  min-height: max(50px, 12vw);
+  padding: max(10px, 2.5vw) max(16px, 4vw);
+  border-radius: max(14px, 3.5vw);
+  font-size: max(16px, 4vw);
+  font-weight: 800;
+  border: none; cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+  display: flex; align-items: center; justify-content: center;
+  gap: 5px;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+  touch-action: manipulation;
+  outline: none;
+}
+.pixel-button:active { transform: scale(0.96); }
+
+.pixel-button.primary {
+  background: linear-gradient(180deg, #52C234 0%, #3DA528 100%);
+  color: #fff;
+  border: max(3px, 0.7vw) solid #2D8A1E;
+  box-shadow: 0 max(6px, 1.5vw) 0 #2D8A1E;
+}
+.pixel-button.primary:active {
+  box-shadow: 0 max(2px, 0.5vw) 0 #2D8A1E;
+  transform: translateY(max(4px, 1vw)) scale(0.98);
+}
+
+.pixel-button.secondary {
+  background: #F3F4F6;
+  color: #6B7280;
+  border: 2px solid #D1D5DB;
+  box-shadow: 0 max(4px, 1vw) 0 #D1D5DB;
+}
+.pixel-button.secondary:active {
+  box-shadow: 0 1px 0 #D1D5DB;
+  transform: translateY(max(3px, 0.8vw)) scale(0.98);
+}
+
+.pixel-button.share {
+  background: #3B82F6;
+  color: #fff;
+  border: 2px solid #1D4ED8;
+  box-shadow: 0 max(4px, 1vw) 0 #1D4ED8;
+}
+.pixel-button.share:active {
+  box-shadow: 0 1px 0 #1D4ED8;
+  transform: translateY(max(3px, 0.8vw)) scale(0.98);
+}
+
+.result-buttons-row {
+  display: flex; gap: max(6px, 1.5vw);
+}
+.result-buttons-row .pixel-button { flex: 1; }
+
+/* ============================================================
+   ERROR FALLBACK
+   ============================================================ */
+.error-card {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(6,23,0,0.95); color: #fff;
+  padding: max(20px, 5vw); text-align: center;
+  z-index: 50;
+}
+.error-card h2 { font-size: max(18px, 4.5vw); margin-bottom: max(8px, 2vw); }
+.error-card p { font-size: max(14px, 3.5vw); color: #D1D5DB; margin-bottom: max(14px, 3.5vw); }
+</style>
+</head>
+<body>
+<main id="game-root" class="game-root">
+  <canvas id="game-canvas" class="game-canvas"></canvas>
+  <img id="cat-gif-player" class="cat-gif-player" src="./assets/images/forth_cat.gif" alt="小猫">
+  <section id="ui-layer" class="ui-layer"></section>
+  <section id="toast-layer" class="toast-layer"></section>
+</main>
+
+<script>
+(function () {
+'use strict';
+
+// ============================================================
+// 1. CONSTANTS
+// ============================================================
+var DES_W = 390;
+var DES_H = 844;
+
+var SCENE_NAMES = {
+  START: 'start', FATE_DRAW: 'fateDraw', MEME_QUIZ: 'memeQuiz',
+  SCREW_CHALLENGE: 'screwChallenge', REBIRTH_CHOICE: 'rebirthChoice',
+  COMMENT_SURVIVAL: 'commentSurvival', CAT_JUMP: 'catJump',
+  CATCH_MEME: 'catchMeme', RESULT: 'result'
+};
+
+var STORAGE_KEYS = {
+  bestScore: 'wgOnline_bestScore',
+  bestTitle: 'wgOnline_bestTitle',
+  bestMemeSense: 'wgOnline_bestMemeSense',
+  hasVisited: 'wgOnline_hasVisited'
+};
+
+var CAT_MOODS = { NORMAL:0, HAPPY:1, SHOCKED:2, SPEECHLESS:3, ANGRY:4 };
+var FORTH_CAT_GIF = "./assets/images/forth_cat.gif";
+
+// ============================================================
+// 2. LEVEL 4 CONFIG
+// ============================================================
+var LV4 = {
+  duration: 30,
+  phases: [
+    { start:0,  interval:750, spMin:2.0, spMax:3.4, redP:0.22, prompt:'先热个身，绿豆正在补给！' },
+    { start:10, interval:650, spMin:2.4, spMax:4.2, redP:0.28, prompt:'红豆开始混进来了！' },
+    { start:20, interval:480, spMin:3.0, spMax:5.2, redP:0.33, prompt:'最后 10 秒，哈基米高速接单！' }
+  ],
+  greenScore: 10,
+  redPenalty: 8
+};
+
+var GREEN_TOASTS = ['+10 绿豆入筐！','哈基米能量 +10','绿豆续命成功','猫猫：这口对味！'];
+var RED_TOASTS = ['-8 红豆误食！','猫猫皱眉 -8','这个不对味！','哈基米：退退退！'];
+
+var RESULT_TITLES = [
+  { min:0,   max:79,  title:'红豆试吃员',       comment:'你不是没努力，你只是把补给站吃成了试吃摊。',               level:'low' },
+  { min:80,  max:159, title:'哈基米入门饲养员',  comment:'绿豆接得有模有样，红豆也没少尝，属于互联网轻度补能。',       level:'mid' },
+  { min:160, max:239, title:'南北绿豆稳定选手',  comment:'你已经掌握哈基米补给节奏，能量槽正在稳步回升。',             level:'high' },
+  { min:240, max:999, title:'绿豆补给站站长',    comment:'你和哈基米完成了高强度绿豆共振，今日网感能量已拉满。',       level:'top' }
+];
+
+// ============================================================
+// 3. GLOBAL STATE
+// ============================================================
+var gameState = {
+  currentScene: SCENE_NAMES.CATCH_MEME,
+  player: { lives:3, maxLives:3, fate:null, hasUsedMemeShield:false, hasUsedCommentHint:false },
+  scores: { memeSense:0, abstractValue:0, survivalValue:100, commentPower:0, spreadValue:0, techValue:0, expressionValue:0, stabilityValue:100 },
+  progress: { quizIndex:0, quizCorrectCount:0, screwCorrectCount:0, screwWrongCount:0, commentIndex:0, commentCorrectCount:0, completedScenes:[], strongestLevel:'', weakestLevel:'' },
+  runtime: { activeTimers:[], activeAnimationFrameId:null, sceneStartTime:0, isSceneLocked:false, isGameOver:false },
+  result: { finalTitle:'', finalComment:'', finalScore:0, isLowScoreEnding:false }
+};
+var flowParams = new URLSearchParams(window.location.search);
+var isEmbeddedFlow = flowParams.get('embedded') === '1';
+
+function notifyParentLevelComplete(payload) {
+  if (!isEmbeddedFlow || window.parent === window) return;
+  window.parent.postMessage({
+    type: 'hackathon-level-complete',
+    level: 'forth',
+    payload: payload
+  }, '*');
+}
+
+// ============================================================
+// 4. DOM REFS
+// ============================================================
+var canvas = document.getElementById('game-canvas');
+var ctx = canvas.getContext('2d');
+var gameRoot = document.getElementById('game-root');
+var uiLayer = document.getElementById('ui-layer');
+var toastLayer = document.getElementById('toast-layer');
+var catGifPlayer = document.getElementById('cat-gif-player');
+var catGifImage = new Image();
+var catGifReady = false;
+catGifImage.onload = function () { catGifReady = true; };
+catGifImage.src = FORTH_CAT_GIF;
+
+// ============================================================
+// 5. LEVEL LOCAL STATE
+// ============================================================
+var lv = {
+  phase: 'intro',
+  score:0, timeLeft:LV4.duration, elapsed:0,
+  catX: DES_W/2, catVX:0, catTilt:0, catBreath:0,
+  catMood: CAT_MOODS.NORMAL, catMoodTimer:0,
+  greenCaught:0, redCaught:0,
+  beans:[], toasts:[], spawnTimer:0,
+  currentPhaseIdx:0, lastPhaseIdx:-1,
+  clouds:[],
+  inputActive:false, inputCX:0, dragOff:0,
+  _lastTs:0
+};
+
+// ============================================================
+// 6. UTILITY
+// ============================================================
+function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+function rand(a, b) { return a + Math.random() * (b - a); }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function registerTimer(id) { gameState.runtime.activeTimers.push(id); return id; }
+
+function addScore(key, amt) {
+  if (gameState.scores.hasOwnProperty(key)) gameState.scores[key] += amt;
+}
+
+function loseLife(amt) {
+  amt = amt || 1;
+  gameState.player.lives = Math.max(0, gameState.player.lives - amt);
+  if (gameState.player.lives <= 0) { gameState.runtime.isGameOver = true; gameState.result.isLowScoreEnding = true; }
+}
+
+// ============================================================
+// 7. CANVAS SETUP
+// ============================================================
+function resizeCanvas() {
+  var dpr = Math.min(window.devicePixelRatio || 1, 2); // cap at 2x for perf
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+}
+
+function getSize() { return { w: window.innerWidth, h: window.innerHeight }; }
+
+// ============================================================
+// 8. CANVAS DRAWING
+// ============================================================
+
+function drawSky(w, h) {
+  var g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#A1E3FF');
+  g.addColorStop(0.4, '#BAEAFF');
+  g.addColorStop(0.78, '#E0F3FF');
+  g.addColorStop(1, '#F0F8FF');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function drawCloud(cx, cy, cw, ch) {
+  ctx.fillStyle = 'rgba(255,255,255,0.82)';
+  var rx = cw / 2, ry = ch / 2;
+  ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx - rx * 0.48, cy - ry * 0.15, rx * 0.68, ry * 0.82, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx + rx * 0.42, cy - ry * 0.1, rx * 0.58, ry * 0.76, 0, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawGrass(w, h) {
+  var top = h * 0.82;
+  ctx.fillStyle = '#52C234';
+  ctx.beginPath();
+  ctx.moveTo(0, top + 20);
+  ctx.quadraticCurveTo(w * 0.25, top - 15, w * 0.5, top + 5);
+  ctx.quadraticCurveTo(w * 0.75, top - 10, w, top + 15);
+  ctx.lineTo(w, h); ctx.lineTo(0, h);
+  ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = '#3DA528';
+  ctx.fillRect(0, top - 2, w, 10);
+
+  ctx.fillStyle = 'rgba(0,0,0,0.05)';
+  for (var i = 0; i < 10; i++) {
+    var gx = w * 0.04 + i * w * 0.1;
+    ctx.fillRect(gx, top + 14 + Math.sin(i * 1.4) * 8, rand(10, 24), 3);
+  }
+
+  ctx.fillStyle = '#8B6914';
+  ctx.fillRect(0, h * 0.93, w, h * 0.07);
+  ctx.fillStyle = '#7A5C10';
+  ctx.fillRect(0, h * 0.93, w, 4);
+}
+
+function drawCat(cx, cy, tilt, mood, s) {
+  if (catGifReady && catGifPlayer) {
+    return;
+  }
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(s, s);
+  ctx.rotate(tilt * 0.15);
+
+  var bW = 44, bH = 50, hR = 22, bskW = 60, bskH = 36;
+  var bx = -bW / 2, by = -bH / 2 - 5;
+  var hx = 0, hy = by - hR + 6, ey = hy - 4;
+
+  // Body
+  ctx.fillStyle = '#FF8A00';
+  ctx.beginPath(); ctx.roundRect(bx, by, bW, bH, 14); ctx.fill();
+  ctx.fillStyle = '#FFB347';
+  ctx.beginPath(); ctx.roundRect(bx + 8, by + 4, bW - 16, bH - 14, 8); ctx.fill();
+
+  // Head
+  ctx.fillStyle = '#FF8A00';
+  ctx.beginPath(); ctx.arc(hx, hy, hR, 0, Math.PI * 2); ctx.fill();
+
+  // Ears
+  ctx.fillStyle = '#FF8A00';
+  ctx.beginPath(); ctx.moveTo(hx - hR + 4, hy - 6); ctx.lineTo(hx - hR, hy - hR - 8); ctx.lineTo(hx - hR + 16, hy - 2); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(hx + hR - 4, hy - 6); ctx.lineTo(hx + hR, hy - hR - 8); ctx.lineTo(hx + hR - 16, hy - 2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FFB3B3';
+  ctx.beginPath(); ctx.moveTo(hx - hR + 6, hy - 3); ctx.lineTo(hx - hR + 4, hy - hR - 3); ctx.lineTo(hx - hR + 13, hy - 1); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(hx + hR - 6, hy - 3); ctx.lineTo(hx + hR - 4, hy - hR - 3); ctx.lineTo(hx + hR - 13, hy - 1); ctx.closePath(); ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#fff';
+  if (mood === CAT_MOODS.HAPPY) {
+    ctx.beginPath(); ctx.ellipse(hx - 8, ey, 7, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(hx + 8, ey, 7, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1F2937';
+    ctx.beginPath(); ctx.arc(hx - 7, ey, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx + 7, ey, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(hx - 9, ey - 3, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx + 5, ey - 3, 2, 0, Math.PI * 2); ctx.fill();
+  } else if (mood === CAT_MOODS.SHOCKED) {
+    ctx.beginPath(); ctx.ellipse(hx - 8, ey, 8, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(hx + 8, ey, 8, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1F2937';
+    ctx.beginPath(); ctx.arc(hx - 7, ey, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx + 7, ey, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#60A5FA';
+    ctx.beginPath();
+    ctx.moveTo(hx + 12, ey - 12);
+    ctx.bezierCurveTo(hx + 14, ey - 16, hx + 20, ey - 12, hx + 16, ey - 4);
+    ctx.bezierCurveTo(hx + 14, ey - 2, hx + 12, ey - 4, hx + 12, ey - 12);
+    ctx.fill();
+  } else {
+    ctx.beginPath(); ctx.ellipse(hx - 8, ey, 7, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(hx + 8, ey, 7, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1F2937';
+    ctx.beginPath(); ctx.arc(hx - 7, ey + 1, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx + 7, ey + 1, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(hx - 9, ey - 2, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx + 5, ey - 2, 2, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Nose + mouth
+  ctx.fillStyle = '#FF6B8A';
+  ctx.beginPath(); ctx.moveTo(hx, ey + 7); ctx.lineTo(hx - 3, ey + 11); ctx.lineTo(hx + 3, ey + 11); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  if (mood === CAT_MOODS.HAPPY) {
+    ctx.beginPath(); ctx.arc(hx, ey + 12, 5, 0.1, Math.PI - 0.1); ctx.stroke();
+  } else if (mood === CAT_MOODS.SHOCKED) {
+    ctx.beginPath(); ctx.arc(hx, ey + 16, 4, Math.PI + 0.3, -0.3); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(hx - 4, ey + 13); ctx.lineTo(hx + 4, ey + 13); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(hx - 3, ey + 13); ctx.lineTo(hx - 5, ey + 11); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(hx + 3, ey + 13); ctx.lineTo(hx + 5, ey + 11); ctx.stroke();
+  }
+
+  // Whiskers
+  ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 1;
+  for (var sgn = -1; sgn <= 1; sgn += 2) {
+    for (var wi = 0; wi < 2; wi++) {
+      var wx = hx + sgn * 5, wy = ey + 5 + wi * 5;
+      ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + sgn * 16, wy - 2 + wi * 2); ctx.stroke();
+    }
+  }
+
+  // Paws
+  ctx.fillStyle = '#FF8A00';
+  ctx.beginPath(); ctx.roundRect(-bskW / 2 + 4, by + bH - 10, 14, 16, 7); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(bskW / 2 - 18, by + bH - 10, 14, 16, 7); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-bskW / 2 + 11, by + bH - 2, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bskW / 2 - 11, by + bH - 2, 5, 0, Math.PI * 2); ctx.fill();
+
+  // Basket
+  var bskX = -bskW / 2, bskY = by + bH + 2;
+  ctx.fillStyle = '#C4843B';
+  ctx.beginPath();
+  ctx.moveTo(bskX, bskY); ctx.lineTo(bskX + bskW, bskY);
+  ctx.lineTo(bskX + bskW * 0.88, bskY + bskH);
+  ctx.lineTo(bskX + bskW * 0.12, bskY + bskH);
+  ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = '#A0682A';
+  ctx.fillRect(bskX - 2, bskY - 2, bskW + 4, 8);
+  ctx.strokeStyle = '#8B5E14'; ctx.lineWidth = 2;
+  ctx.strokeRect(bskX - 2, bskY - 2, bskW + 4, 8);
+
+  ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 1;
+  for (var wi2 = 1; wi2 < 4; wi2++) {
+    var ly = bskY + 8 + wi2 * (bskH - 8) / 4;
+    var sh = (ly - bskY) / bskH;
+    ctx.beginPath();
+    ctx.moveTo(bskX + sh * bskW * 0.06, ly);
+    ctx.lineTo(bskX + bskW - sh * bskW * 0.06, ly);
+    ctx.stroke();
+  }
+  for (var vi = 1; vi < 5; vi++) {
+    ctx.beginPath();
+    ctx.moveTo(bskX + vi * bskW / 5, bskY + 6);
+    ctx.lineTo(bskX + vi * bskW / 5, bskY + bskH * 0.85);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawCatGif(cx, cy, tilt, s) {
+  if (!catGifPlayer) return;
+  var drawW = 84 * s;
+  var drawH = 84 * s;
+  catGifPlayer.style.display = 'block';
+  catGifPlayer.style.width = drawW + 'px';
+  catGifPlayer.style.height = drawH + 'px';
+  catGifPlayer.style.left = (cx - drawW / 2) + 'px';
+  catGifPlayer.style.top = (cy - drawH * 0.9) + 'px';
+  catGifPlayer.style.transform = 'rotate(' + (tilt * 0.12) + 'rad)';
+}
+
+function setCatGifVisible(visible) {
+  if (!catGifPlayer) return;
+  catGifPlayer.style.display = visible && catGifReady ? 'block' : 'none';
+}
+
+function drawBean(x, y, r, isRed) {
+  var g = ctx.createRadialGradient(x - r * 0.2, y - r * 0.3, r * 0.1, x, y, r);
+  if (isRed) { g.addColorStop(0, '#FCA5A5'); g.addColorStop(0.5, '#EF4444'); g.addColorStop(1, '#B91C1C'); }
+  else { g.addColorStop(0, '#86EFAC'); g.addColorStop(0.5, '#22C55E'); g.addColorStop(1, '#15803D'); }
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.32)';
+  ctx.beginPath(); ctx.arc(x - r * 0.3, y - r * 0.35, r * 0.35, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = isRed ? 'rgba(185,28,28,0.4)' : 'rgba(21,128,61,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke();
+}
+
+function drawToast(t) {
+  var a = Math.max(0, t.alpha);
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.fillStyle = t.color;
+  ctx.font = 'bold ' + Math.max(13, Math.round(t.size)) + 'px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.3)';
+  ctx.shadowBlur = 4;
+  ctx.fillText(t.text, t.x, t.y);
+  ctx.restore();
+}
+
+// ============================================================
+// 9. GAME LOGIC
+// ============================================================
+function getPhase() {
+  for (var i = LV4.phases.length - 1; i >= 0; i--) {
+    if (lv.elapsed >= LV4.phases[i].start) return LV4.phases[i];
+  }
+  return LV4.phases[0];
+}
+
+function spawnBean(w, h) {
+  var ph = getPhase();
+  var isRed = Math.random() < ph.redP;
+  var r = isRed ? rand(10, 14) : rand(9, 13);
+  var x = rand(r + 4, DES_W - r - 4);
+  lv.beans.push({
+    x:x, y:-r - rand(0, 60), r:r, isRed:isRed,
+    speed: rand(ph.spMin, ph.spMax),
+    rot: rand(0, Math.PI * 2), rotSpd: rand(-0.03, 0.03), caught:false
+  });
+}
+
+function getBasketRect() {
+  var bw = 60, bh = 36;
+  var baseY = DES_H * 0.795;
+  return { x: lv.catX - bw / 2, y: baseY - bh, w: bw, h: bh };
+}
+
+function hitTest(bean, rect) {
+  var cx = clamp(bean.x, rect.x, rect.x + rect.w);
+  var cy = clamp(bean.y, rect.y, rect.y + rect.h);
+  var dx = bean.x - cx, dy = bean.y - cy;
+  return (dx * dx + dy * dy) < (bean.r * bean.r);
+}
+
+function spawnToast(text, color, x, y, s) {
+  lv.toasts.push({ text:text, color:color, x:x, y:y, vy:-1.25, alpha:1, life:0, maxLife: rand(600, 900), size: 15 * s });
+}
+
+function showPhasePrompt(text) {
+  var exist = uiLayer.querySelector('.phase-prompt');
+  if (exist) exist.remove();
+  var div = document.createElement('div');
+  div.className = 'phase-prompt';
+  div.textContent = text;
+  uiLayer.appendChild(div);
+  registerTimer(setTimeout(function () { if (div.parentNode) div.remove(); }, 2600));
+}
+
+// ============================================================
+// 10. HUD
+// ============================================================
+function updateHUD() {
+  var tEl = document.getElementById('hud-timer');
+  var sEl = document.getElementById('hud-score');
+  var fEl = document.getElementById('hud-fill');
+  if (!tEl || !sEl) return;
+  var sec = Math.ceil(lv.timeLeft);
+  tEl.textContent = sec + 's';
+  tEl.classList[sec <= 10 ? 'add' : 'remove']('urgent');
+  sEl.textContent = lv.score;
+  if (fEl) fEl.style.width = Math.min(100, (lv.score / 300) * 100) + '%';
+}
+
+function buildHUD() {
+  var d = document.createElement('div');
+  d.className = 'hud';
+  d.innerHTML =
+    '<div class="hud-left">'+
+      '<div class="hud-badge"><div class="hud-badge-icon energy">⚡</div><span>能量</span><div class="hud-score-fill-wrap"><div class="hud-score-fill" id="hud-fill" style="width:0%"></div></div></div>'+
+      '<div class="hud-badge"><div class="hud-badge-icon score-bg">🪙</div><span id="hud-score" style="font-weight:900;min-width:28px">0</span></div>'+
+    '</div>'+
+    '<div class="hud-timer-wrap"><div class="hud-timer-label">补给时间</div><div class="hud-timer-circle"><span class="hud-timer-text" id="hud-timer">30s</span></div></div>';
+  uiLayer.appendChild(d);
+}
+
+// ============================================================
+// 11. MAIN GAME LOOP
+// ============================================================
+function gameLoop(ts) {
+  if (lv.phase !== 'playing') return;
+  gameState.runtime.activeAnimationFrameId = requestAnimationFrame(gameLoop);
+
+  var sz = getSize();
+  var w = sz.w, h = sz.h;
+  var scl = Math.min(w / DES_W, h / DES_H);
+  var dt = Math.min(50, ts - (lv._lastTs || ts));
+  lv._lastTs = ts;
+
+  // Time
+  lv.elapsed += dt / 1000;
+  lv.timeLeft = Math.max(0, LV4.duration - lv.elapsed);
+
+  // Phase
+  var ph = getPhase();
+  var phIdx = LV4.phases.indexOf(ph);
+  if (phIdx !== lv.lastPhaseIdx) {
+    lv.lastPhaseIdx = phIdx;
+    showPhasePrompt(ph.prompt);
+  }
+
+  // Hide drag hint after first interaction
+  var hint = document.getElementById('drag-hint');
+  if (hint && lv.inputActive && lv.elapsed > 1.5) {
+    hint.style.opacity = '0';
+    hint.style.transition = 'opacity 0.5s';
+    registerTimer(setTimeout(function () { if (hint.parentNode) hint.remove(); }, 600));
+  } else if (hint && lv.elapsed > 4) {
+    hint.style.opacity = '0';
+    hint.style.transition = 'opacity 0.5s';
+    registerTimer(setTimeout(function () { if (hint.parentNode) hint.remove(); }, 600));
+  }
+
+  // Cat movement — drag uses direct position lerp (no oscillation)
+  if (lv.inputActive) {
+    var tgt = clamp(lv.inputCX - lv.dragOff, 35, DES_W - 35);
+    var diff = tgt - lv.catX;
+    // Lerp toward target — critically damped, never overshoots
+    lv.catX += diff * 0.32;
+    // Snap when within sub-pixel range so it fully stops
+    if (Math.abs(diff) < 0.3) lv.catX = tgt;
+    // Tilt from remaining distance, not velocity — fades to 0 as cat settles
+    lv.catTilt = clamp(diff * 0.025, -0.35, 0.35);
+    lv.catVX = diff * 0.32; // for compatibility
+  } else {
+    // Keyboard / coast mode: velocity with friction
+    lv.catVX *= 0.86;
+    if (Math.abs(lv.catVX) < 0.1) lv.catVX = 0;
+    lv.catX = clamp(lv.catX + lv.catVX, 35, DES_W - 35);
+    lv.catTilt = clamp(lv.catVX * 0.035, -0.35, 0.35);
+  }
+  lv.catBreath += dt * 0.004;
+  if (lv.catMoodTimer > 0) { lv.catMoodTimer -= dt; if (lv.catMoodTimer <= 0) { lv.catMood = CAT_MOODS.NORMAL; lv.catMoodTimer = 0; } }
+
+  // Spawn
+  lv.spawnTimer += dt;
+  while (lv.spawnTimer >= ph.interval) { lv.spawnTimer -= ph.interval; spawnBean(w, h); }
+
+  // Update beans
+  var br = getBasketRect();
+  for (var i = lv.beans.length - 1; i >= 0; i--) {
+    var b = lv.beans[i];
+    b.y += b.speed * (dt / 16.67);
+    b.rot += b.rotSpd * (dt / 16.67);
+    if (b.y > DES_H + b.r * 2) { lv.beans.splice(i, 1); continue; }
+    if (!b.caught && hitTest(b, br)) {
+      b.caught = true;
+      var tx = b.x * scl, ty = br.y * scl;
+      if (b.isRed) {
+        lv.score = Math.max(0, lv.score - LV4.redPenalty);
+        lv.redCaught++;
+        lv.catMood = CAT_MOODS.SHOCKED; lv.catMoodTimer = 500;
+        spawnToast(pick(RED_TOASTS), '#EF4444', tx, ty, scl);
+      } else {
+        lv.score += LV4.greenScore;
+        lv.greenCaught++;
+        lv.catMood = CAT_MOODS.HAPPY; lv.catMoodTimer = 500;
+        spawnToast(pick(GREEN_TOASTS), '#22C55E', tx, ty, scl);
+      }
+      lv.beans.splice(i, 1);
+    }
+  }
+
+  // Update toasts
+  for (var j = lv.toasts.length - 1; j >= 0; j--) {
+    var t = lv.toasts[j];
+    t.y += t.vy * (dt / 16.67);
+    t.life += dt;
+    t.alpha = 1 - (t.life / t.maxLife);
+    if (t.life >= t.maxLife) lv.toasts.splice(j, 1);
+  }
+
+  // Update clouds
+  for (var k = 0; k < lv.clouds.length; k++) {
+    var c = lv.clouds[k];
+    c.x += c.speed * (dt / 16.67);
+    if (c.x > w + 120) c.x = -120;
+  }
+
+  // End check
+  if (lv.timeLeft <= 0) { endGame(); return; }
+
+  // ---- DRAW ----
+  ctx.clearRect(0, 0, w, h);
+  drawSky(w, h);
+  for (var ci = 0; ci < lv.clouds.length; ci++) { var cc = lv.clouds[ci]; drawCloud(cc.x, cc.y, cc.w, cc.h); }
+
+  // Beans
+  for (var bi = 0; bi < lv.beans.length; bi++) {
+    var bn = lv.beans[bi];
+    ctx.save();
+    ctx.translate(bn.x * scl, bn.y * scl);
+    ctx.rotate(bn.rot);
+    drawBean(0, 0, bn.r * scl, bn.isRed);
+    ctx.restore();
+  }
+
+  // Cat
+  var catX = lv.catX * scl;
+  var catY = h * 0.795 + Math.sin(lv.catBreath) * 1.8;
+  if (catGifReady && catGifPlayer) drawCatGif(catX, catY, lv.catTilt, scl);
+  drawCat(catX, catY, lv.catTilt, lv.catMood, scl);
+
+  // Grass
+  drawGrass(w, h);
+
+  // Toasts
+  for (var ti = 0; ti < lv.toasts.length; ti++) { drawToast(lv.toasts[ti]); }
+
+  updateHUD();
+}
+
+// ============================================================
+// 12. END GAME
+// ============================================================
+function endGame() {
+  lv.phase = 'result';
+  cancelAnimationFrame(gameState.runtime.activeAnimationFrameId);
+  gameState.runtime.activeAnimationFrameId = null;
+
+  var result = null;
+  for (var i = 0; i < RESULT_TITLES.length; i++) {
+    if (lv.score >= RESULT_TITLES[i].min && lv.score <= RESULT_TITLES[i].max) { result = RESULT_TITLES[i]; break; }
+  }
+  if (!result) result = RESULT_TITLES[0];
+
+  window.gameState = window.gameState || {};
+  window.gameState.level4 = {
+    id:'level4', name:'能量补给站——哈基米南北绿豆',
+    score:lv.score, title:result.title, comment:result.comment,
+    greenCaught:lv.greenCaught, redCaught:lv.redCaught, completed:true
+  };
+
+  gameState.scores.memeSense += lv.greenCaught;
+  gameState.scores.abstractValue += Math.max(0, lv.score - lv.redCaught * 8);
+  gameState.scores.survivalValue = Math.max(0, 100 - lv.redCaught * 5);
+  gameState.result.finalTitle = result.title;
+  gameState.result.finalComment = result.comment;
+  gameState.result.finalScore = lv.score;
+
+  saveBestScore();
+  showResultPanel(result);
+}
+
+function showResultPanel(result) {
+  setCatGifVisible(false);
+  var hud = uiLayer.querySelector('.hud');
+  uiLayer.innerHTML = '';
+  if (hud) uiLayer.appendChild(hud);
+
+  var isLow = result.level === 'low', isTop = result.level === 'top';
+  var st = isLow ? '补给结束！' : (isTop ? '能量拉满！' : '补给完成！');
+  var emoji = isLow ? '🔧' : (isTop ? '👑' : '⭐');
+
+  var ov = document.createElement('div');
+  ov.className = 'result-overlay';
+  ov.innerHTML =
+    '<div class="result-panel">'+
+      '<div class="result-crown">'+emoji+'</div>'+
+      '<div class="result-title '+result.level+'">'+st+'</div>'+
+      '<div class="result-subtitle">'+result.title+'</div>'+
+      '<div class="result-stats">'+
+        '<div class="result-stat-row"><div class="result-stat-label"><div class="stat-icon clock">⏱</div>补给用时</div><div class="result-stat-value">30.0s</div></div>'+
+        '<div class="result-stat-row"><div class="result-stat-label"><div class="stat-icon green">🟢</div>接住绿豆</div><div class="result-stat-value green-text">'+lv.greenCaught+'</div></div>'+
+        '<div class="result-stat-row"><div class="result-stat-label"><div class="stat-icon red">🔴</div>误接红豆</div><div class="result-stat-value red-text">'+lv.redCaught+'</div></div>'+
+        '<div class="result-stat-row"><div class="result-stat-label"><div class="stat-icon rating">🏅</div>补给评级</div><div class="result-stat-value gold-text">'+result.title+'</div></div>'+
+      '</div>'+
+      '<div class="result-comment">'+result.comment+'</div>'+
+      '<div class="result-buttons">'+
+        '<button class="pixel-button primary" id="btn-restart">再来一次</button>'+
+        '<button class="pixel-button secondary" id="btn-settle">'+(isEmbeddedFlow ? '🏁 完成全部关卡' : '📋 结算游戏')+'</button>'+
+      '</div>'+
+    '</div>';
+  uiLayer.appendChild(ov);
+
+  document.getElementById('btn-restart').addEventListener('click', restartGame);
+  document.getElementById('btn-settle').addEventListener('click', function () {
+    if (isEmbeddedFlow) {
+      notifyParentLevelComplete({
+        success: true,
+        title: result.title,
+        comment: result.comment,
+        score: lv.score,
+        vitality: Math.max(0, Math.min(100, Math.round((lv.score / 480) * 100))),
+        greenCaught: lv.greenCaught,
+        redCaught: lv.redCaught,
+        level: result.level
+      });
+      return;
+    }
+    showSettleScreen(result);
+  });
+}
+
+function showSettleScreen(result) {
+  setCatGifVisible(false);
+  uiLayer.innerHTML = '';
+  var ov = document.createElement('div');
+  ov.className = 'result-overlay';
+  ov.innerHTML =
+    '<div class="result-panel">'+
+      '<div class="result-crown">📋</div>'+
+      '<div class="result-title '+result.level+'">结算完成</div>'+
+      '<div class="result-subtitle">结果已记录至本地</div>'+
+      '<div class="result-stats">'+
+        '<div class="result-stat-row"><div class="result-stat-label"><div class="stat-icon green">🏆</div>最终得分</div><div class="result-stat-value gold-text">'+lv.score+'分</div></div>'+
+        '<div class="result-stat-row"><div class="result-stat-label"><div class="stat-icon rating">🏅</div>获得称号</div><div class="result-stat-value gold-text">'+result.title+'</div></div>'+
+      '</div>'+
+      '<div class="result-comment">'+result.comment+'</div>'+
+      '<div class="result-buttons">'+
+        '<button class="pixel-button primary" id="btn-restart2">再来一次</button>'+
+      '</div>'+
+    '</div>';
+  uiLayer.appendChild(ov);
+  document.getElementById('btn-restart2').addEventListener('click', restartGame);
+}
+
+function drawPreviewFrame() {
+  var sz = getSize();
+  var w = sz.w, h = sz.h;
+  var scl = Math.min(w / DES_W, h / DES_H);
+  setCatGifVisible(false);
+  ctx.clearRect(0, 0, w, h);
+  drawSky(w, h);
+  drawCloud(w * 0.1, h * 0.08, 90, 24);
+  drawCloud(w * 0.7, h * 0.13, 120, 30);
+  drawCloud(w * 0.38, h * 0.18, 70, 20);
+  drawGrass(w, h);
+  drawCat(DES_W / 2 * scl, h * 0.795, 0, CAT_MOODS.NORMAL, scl);
+}
+
+// ============================================================
+// 13. INTRO
+// ============================================================
+function showIntro(cb) {
+  setCatGifVisible(false);
+  drawPreviewFrame();
+  var ov = document.createElement('div');
+  ov.className = 'intro-overlay';
+  ov.innerHTML =
+      '<div class="intro-card">'+
+      '<div class="intro-badge">⚡ 能量补给站</div>'+
+      '<div class="intro-icon"><img src="' + FORTH_CAT_GIF + '" alt="小猫" style="width:100%;height:100%;object-fit:contain;border-radius:50%;"></div>'+
+      '<h2>哈基米南北绿豆</h2>'+
+      '<p class="subtitle">左右拖动小猫，接住绿豆避开红豆</p>'+
+      '<div class="intro-rules">'+
+        '<div class="intro-rule"><div class="intro-rule-dot green">🟢</div><span class="green-text">+10分</span></div>'+
+        '<div class="intro-rule"><div class="intro-rule-dot red">🔴</div><span class="red-text">-8分</span></div>'+
+      '</div>'+
+      '<button class="intro-btn" id="btn-start-game">🕹 开始游戏</button>'+
+    '</div>';
+  uiLayer.appendChild(ov);
+
+  document.getElementById('btn-start-game').addEventListener('click', function () {
+    ov.remove();
+    cb();
+  });
+}
+
+// ============================================================
+// 14. START / RESTART
+// ============================================================
+function startGame() {
+  setCatGifVisible(catGifReady);
+  lv.phase = 'playing';
+  lv.score = 0; lv.timeLeft = LV4.duration; lv.elapsed = 0;
+  lv.catX = DES_W / 2; lv.catVX = 0; lv.catTilt = 0; lv.catBreath = 0;
+  lv.catMood = CAT_MOODS.NORMAL; lv.catMoodTimer = 0;
+  lv.greenCaught = 0; lv.redCaught = 0;
+  lv.beans = []; lv.toasts = []; lv.spawnTimer = 0;
+  lv.currentPhaseIdx = 0; lv.lastPhaseIdx = -1;
+  lv.inputActive = false;
+  lv._lastTs = 0;
+
+  buildHUD();
+  updateHUD();
+
+  // Drag hint
+  var hint = document.createElement('div');
+  hint.className = 'drag-hint';
+  hint.id = 'drag-hint';
+  hint.innerHTML = '<span>👆 左右拖动小猫接豆豆</span>';
+  uiLayer.appendChild(hint);
+
+  var sz = getSize();
+  lv.clouds = [
+    { x:sz.w*0.08, y:sz.h*0.06, w:90, h:24, speed:0.15 },
+    { x:sz.w*0.65, y:sz.h*0.11, w:120, h:30, speed:0.11 },
+    { x:sz.w*0.35, y:sz.h*0.17, w:70, h:20, speed:0.13 }
+  ];
+
+  gameState.runtime.activeAnimationFrameId = requestAnimationFrame(gameLoop);
+  showPhasePrompt(LV4.phases[0].prompt);
+}
+
+function restartGame() { cleanupScene(); showIntro(startGame); }
+
+// ============================================================
+// 15. INPUT — mobile-first touch + mouse
+// ============================================================
+function getClientX(e) {
+  if (e.touches && e.touches.length > 0) return e.touches[0].clientX;
+  if (e.changedTouches && e.changedTouches.length > 0) return e.changedTouches[0].clientX;
+  return e.clientX;
+}
+
+function onStart(e) {
+  if (lv.phase !== 'playing') return;
+  e.preventDefault();
+  lv.inputActive = true;
+  var cx = getClientX(e);
+  if (typeof cx !== 'number') return;
+  var sz = getSize();
+  var scl = Math.min(sz.w / DES_W, sz.h / DES_H);
+  lv.inputCX = cx / scl;
+  lv.dragOff = lv.inputCX - lv.catX;
+}
+
+function onMove(e) {
+  if (lv.phase !== 'playing' || !lv.inputActive) return;
+  e.preventDefault();
+  var cx = getClientX(e);
+  if (typeof cx !== 'number') return;
+  var sz = getSize();
+  var scl = Math.min(sz.w / DES_W, sz.h / DES_H);
+  lv.inputCX = cx / scl;
+}
+
+function onEnd(e) {
+  if (lv.phase !== 'playing') return;
+  e.preventDefault();
+  lv.inputActive = false;
+}
+
+function onKeyD(e) {
+  if (lv.phase !== 'playing') return;
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { lv.catVX = -10; lv.catTilt = -0.35; lv.inputActive = false; }
+  else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { lv.catVX = 10; lv.catTilt = 0.35; lv.inputActive = false; }
+}
+
+function onKeyU(e) {
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A' || e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+    lv.catVX = 0; lv.catTilt = 0;
+  }
+}
+
+function bindInput() {
+  canvas.addEventListener('touchstart', onStart, { passive: false });
+  canvas.addEventListener('touchmove', onMove, { passive: false });
+  canvas.addEventListener('touchend', onEnd);
+  canvas.addEventListener('touchcancel', onEnd);
+  canvas.addEventListener('mousedown', onStart);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('keydown', onKeyD);
+  window.addEventListener('keyup', onKeyU);
+
+  // Block all default mobile behaviors on the canvas
+  canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+  document.addEventListener('gesturechange', function (e) { e.preventDefault(); });
+  document.addEventListener('gestureend', function (e) { e.preventDefault(); });
+}
+
+// ============================================================
+// 16. SCENE MANAGEMENT
+// ============================================================
+function cleanupScene() {
+  gameState.runtime.activeTimers.forEach(function (id) { clearTimeout(id); clearInterval(id); });
+  gameState.runtime.activeTimers = [];
+  if (gameState.runtime.activeAnimationFrameId) { cancelAnimationFrame(gameState.runtime.activeAnimationFrameId); gameState.runtime.activeAnimationFrameId = null; }
+  setCatGifVisible(false);
+  if (uiLayer) uiLayer.innerHTML = '';
+  if (toastLayer) toastLayer.innerHTML = '';
+  gameState.runtime.isSceneLocked = false;
+}
+
+function goToScene(name) {
+  cleanupScene();
+  gameState.currentScene = name;
+  gameState.runtime.sceneStartTime = Date.now();
+  switch (name) {
+    case SCENE_NAMES.CATCH_MEME: renderCatchMemeLevel(); break;
+    case SCENE_NAMES.RESULT: renderResultCard(); break;
+    case SCENE_NAMES.START: renderStartScreen(); break;
+    default: showErrorMessage(new Error('Unknown scene: ' + name));
+  }
+}
+
+// ============================================================
+// 17. RENDER STUBS
+// ============================================================
+function renderCatchMemeLevel() { resizeCanvas(); bindInput(); showIntro(startGame); }
+function renderResultCard() {}
+function renderStartScreen() {}
+function renderFateDraw() {}
+function renderMemeQuiz() {}
+function renderScrewChallenge() {}
+function renderRebirthChoice() {}
+function renderCommentSurvival() {}
+function renderCatJumpLevel() {}
+
+// ============================================================
+// 18. CORE FUNCTIONS
+// ============================================================
+function initGame() {
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('orientationchange', function () { registerTimer(setTimeout(resizeCanvas, 300)); });
+  loadBestScore();
+  try { if (!localStorage.getItem(STORAGE_KEYS.hasVisited)) localStorage.setItem(STORAGE_KEYS.hasVisited, '1'); } catch (e) {}
+  goToScene(SCENE_NAMES.CATCH_MEME);
+}
+
+function resetGame() {
+  cleanupScene();
+  gameState.player.lives = gameState.player.maxLives;
+  var ks = ['memeSense','abstractValue','commentPower','spreadValue','techValue','expressionValue'];
+  for (var i = 0; i < ks.length; i++) gameState.scores[ks[i]] = 0;
+  gameState.scores.survivalValue = 100; gameState.scores.stabilityValue = 100;
+  gameState.progress.completedScenes = [];
+  gameState.result.isLowScoreEnding = false;
+  gameState.runtime.isGameOver = false;
+  initGame();
+}
+
+function saveBestScore() {
+  try {
+    var prev = parseInt(localStorage.getItem(STORAGE_KEYS.bestScore) || '0', 10);
+    if (lv.score > prev) {
+      localStorage.setItem(STORAGE_KEYS.bestScore, String(lv.score));
+      for (var i = 0; i < RESULT_TITLES.length; i++) {
+        if (lv.score >= RESULT_TITLES[i].min && lv.score <= RESULT_TITLES[i].max) { localStorage.setItem(STORAGE_KEYS.bestTitle, RESULT_TITLES[i].title); break; }
+      }
+      var ms = parseInt(localStorage.getItem(STORAGE_KEYS.bestMemeSense) || '0', 10);
+      if (gameState.scores.memeSense > ms) localStorage.setItem(STORAGE_KEYS.bestMemeSense, String(gameState.scores.memeSense));
+    }
+  } catch (e) {}
+}
+
+function loadBestScore() {
+  try { localStorage.getItem(STORAGE_KEYS.bestScore); localStorage.getItem(STORAGE_KEYS.bestTitle); localStorage.getItem(STORAGE_KEYS.bestMemeSense); } catch (e) {}
+}
+
+function showErrorMessage(err) {
+  console.error(err);
+  setCatGifVisible(false);
+  if (!uiLayer) return;
+  uiLayer.innerHTML =
+    '<div class="error-card">'+
+      '<h2>网感 Online 服短暂抽象了</h2>'+
+      '<p>哎呀，网感 Online 服短暂抽象了，请重启试试吧~</p>'+
+      '<button class="pixel-button primary" onclick="resetGame()">返回开始页</button>'+
+    '</div>';
+}
+
+// ============================================================
+// 19. ERROR HANDLERS
+// ============================================================
+window.addEventListener('error', function (e) { showErrorMessage(e.error); });
+window.addEventListener('unhandledrejection', function (e) { showErrorMessage(e.reason); });
+
+// ============================================================
+// 20. EXPORT & INIT
+// ============================================================
+window.initGame = initGame;
+window.resetGame = resetGame;
+window.goToScene = goToScene;
+window.cleanupScene = cleanupScene;
+window.renderStartScreen = renderStartScreen;
+window.renderFateDraw = renderFateDraw;
+window.renderMemeQuiz = renderMemeQuiz;
+window.renderScrewChallenge = renderScrewChallenge;
+window.renderRebirthChoice = renderRebirthChoice;
+window.renderCommentSurvival = renderCommentSurvival;
+window.renderCatJumpLevel = renderCatJumpLevel;
+window.renderCatchMemeLevel = renderCatchMemeLevel;
+window.renderResultCard = renderResultCard;
+window.saveBestScore = saveBestScore;
+window.loadBestScore = loadBestScore;
+window.showErrorMessage = showErrorMessage;
+window.SCENE_NAMES = SCENE_NAMES;
+window.gameState = gameState;
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initGame);
+} else {
+  initGame();
+}
+
+})();
+</script>
+</body>
+</html>

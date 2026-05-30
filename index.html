@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>网感 Online</title>
+  <style>
+    :root {
+      --paper: #f7f0cb;
+      --paper-dark: #ede3b2;
+      --ink: #171717;
+      --red: #ff5c57;
+      --blue: #58a6ff;
+      --yellow: #ffd84d;
+      --green: #7ae582;
+      --bg: #d5e4ff;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255, 92, 87, 0.18), transparent 22%),
+        radial-gradient(circle at 85% 15%, rgba(88, 166, 255, 0.18), transparent 20%),
+        linear-gradient(180deg, #cfe0ff 0%, #f5f7ff 100%);
+    }
+
+    body {
+      touch-action: manipulation;
+      font-family: "Comic Sans MS", "Trebuchet MS", "Marker Felt", cursive, sans-serif;
+      color: var(--ink);
+      display: flex;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    .app {
+      position: relative;
+      width: min(100vw, 430px);
+      min-height: calc(100vh - 16px);
+      min-height: calc(100dvh - 16px);
+      background:
+        repeating-linear-gradient(
+          180deg,
+          rgba(80, 154, 255, 0.16) 0,
+          rgba(80, 154, 255, 0.16) 2px,
+          transparent 2px,
+          transparent 34px
+        ),
+        linear-gradient(90deg, rgba(255, 120, 120, 0.22) 0, rgba(255, 120, 120, 0.22) 3px, transparent 3px, transparent 52px),
+        linear-gradient(180deg, var(--paper) 0%, var(--paper-dark) 100%);
+      border: 4px solid var(--ink);
+      border-radius: 22px;
+      box-shadow: 10px 10px 0 rgba(23, 23, 23, 0.18);
+      overflow: hidden;
+    }
+
+    .topbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 5;
+      padding: calc(12px + var(--safe-top)) 14px 10px;
+      pointer-events: none;
+    }
+
+    .progress-shell {
+      width: 100%;
+      height: 18px;
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.88);
+      overflow: hidden;
+      box-shadow: 4px 4px 0 rgba(23, 23, 23, 0.12);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--red) 0%, var(--yellow) 35%, var(--green) 70%, var(--blue) 100%);
+      transition: width 0.35s ease;
+    }
+
+    .viewport {
+      position: relative;
+      min-height: calc(100vh - 16px);
+      min-height: calc(100dvh - 16px);
+      padding-top: calc(36px + var(--safe-top));
+    }
+
+    .level-frame {
+      width: 100%;
+      height: calc(100vh - 52px - var(--safe-top));
+      height: calc(100dvh - 52px - var(--safe-top));
+      border: 0;
+      display: none;
+      background: #fff;
+    }
+
+    .level-frame.visible {
+      display: block;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      display: none;
+      padding: calc(28px + var(--safe-top)) 16px calc(18px + var(--safe-bottom));
+      background: rgba(247, 240, 203, 0.92);
+      backdrop-filter: blur(4px);
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .overlay.show {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .overlay::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
+
+    .scene {
+      width: 100%;
+      display: grid;
+      gap: 12px;
+    }
+
+    .sheet {
+      position: relative;
+      background: rgba(255, 251, 235, 0.92);
+      border: 4px solid var(--ink);
+      border-radius: 20px;
+      padding: 14px 12px;
+      box-shadow: 6px 6px 0 rgba(23, 23, 23, 0.14);
+    }
+
+    .sheet::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border: 2px dashed rgba(23, 23, 23, 0.18);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+
+    .tilt-left { transform: rotate(-1.2deg); }
+    .tilt-right { transform: rotate(1deg); }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #fff;
+    }
+
+    .tag.red { background: var(--red); color: #fff; }
+    .tag.blue { background: var(--blue); color: #fff; }
+    .tag.yellow { background: var(--yellow); }
+    .tag.green { background: var(--green); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 108px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .hero h1, .hero h2 {
+      margin: 0;
+      font-size: clamp(28px, 8vw, 40px);
+      line-height: 1.04;
+    }
+
+    .hero p,
+    .small-note,
+    .summary-copy {
+      margin: 8px 0 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .doodle-box {
+      height: 112px;
+      border: 4px solid var(--ink);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.86);
+      overflow: hidden;
+    }
+
+    .doodle-box svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .status-box {
+      border: 4px solid var(--ink);
+      border-radius: 16px;
+      padding: 10px 8px;
+      text-align: center;
+      background: #fff;
+      position: relative;
+      z-index: 1;
+    }
+
+    .status-box strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .status-box span {
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .big-button,
+    .mini-button {
+      appearance: none;
+      border: 4px solid var(--ink);
+      border-radius: 20px;
+      min-height: 58px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 6px 6px 0 rgba(23, 23, 23, 0.12);
+    }
+
+    .big-button {
+      width: 100%;
+      background: var(--red);
+      color: #fff;
+    }
+
+    .mini-button {
+      width: 100%;
+      background: var(--yellow);
+      color: var(--ink);
+    }
+
+    .transition-sheet {
+      text-align: center;
+      padding: 22px 16px;
+    }
+
+    .transition-sheet h2 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.06;
+    }
+
+    .transition-sheet p {
+      margin: 12px 0 0;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .result-title {
+      text-align: center;
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.08;
+    }
+
+    .result-hero {
+      display: grid;
+      grid-template-columns: 1fr 96px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .radar-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 272px;
+      margin: 0 auto;
+    }
+
+    .radar-wrap svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .radar-value {
+      fill: rgba(255, 92, 87, 0.3);
+      stroke: var(--ink);
+      stroke-width: 3;
+      transition: all 0.55s ease;
+    }
+
+    .radar-dot {
+      fill: var(--ink);
+      transition: all 0.55s ease;
+    }
+
+    .label-rail {
+      display: grid;
+      gap: 6px;
+    }
+
+    .label-pill {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .label-pill strong {
+      font-size: 15px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .result-card {
+      border: 3px solid var(--ink);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .result-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 380px) {
+      .hero {
+        grid-template-columns: 1fr 92px;
+      }
+
+      .hero h1, .hero h2 {
+        font-size: 30px;
+      }
+
+      .result-hero {
+        grid-template-columns: 1fr 82px;
+      }
+
+      .status-grid,
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .radar-wrap {
+        max-width: 248px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="topbar">
+      <div class="progress-shell">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+    </section>
+
+    <section class="viewport">
+      <iframe id="level-frame" class="level-frame" title="关卡容器"></iframe>
+      <div id="overlay" class="overlay show"></div>
+    </section>
+  </main>
+
+  <script>
+    const levels = [
+      { id: "first", file: "first.html?embedded=1" },
+      { id: "second", file: "second.html?embedded=1" },
+      { id: "third", file: "third.html?embedded=1" },
+      { id: "forth", file: "forth.html?embedded=1" }
+    ];
+
+    const transitionCards = [
+      { title: "纸箱翻页", copy: "旧电脑哼了一声。" },
+      { title: "过场喘口气", copy: "屏幕闪了两下，又亮起来。" },
+      { title: "最后一页", copy: "这回是真的要收尾了。" }
+    ];
+
+    const state = {
+      currentIndex: -1,
+      results: {}
+    };
+
+    const progressFillEl = document.getElementById("progress-fill");
+    const frameEl = document.getElementById("level-frame");
+    const overlayEl = document.getElementById("overlay");
+
+    function renderStickmanDoodle() {
+      return `
+        <svg viewBox="0 0 120 120" aria-label="火柴人">
+          <circle cx="58" cy="28" r="14" fill="none" stroke="#171717" stroke-width="4"></circle>
+          <path d="M58 42 L58 74" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+          <path d="M34 56 L82 52" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+          <path d="M58 74 L38 102" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+          <path d="M58 74 L82 101" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+          <rect x="70" y="44" width="34" height="26" rx="8" fill="#ffd84d" stroke="#171717" stroke-width="4"></rect>
+          <text x="87" y="61" text-anchor="middle" font-size="10" font-weight="900" fill="#171717">OK</text>
+          <path d="M16 94 Q38 86 58 96" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+        </svg>
+      `;
+    }
+
+    function renderResultStickman() {
+      return `
+        <svg viewBox="0 0 120 120" aria-label="结果火柴人">
+          <circle cx="56" cy="25" r="14" fill="none" stroke="#171717" stroke-width="4"></circle>
+          <path d="M56 39 L56 72" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+          <path d="M34 53 L79 49" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+          <path d="M56 72 L37 101" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+          <path d="M56 72 L80 100" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+          <rect x="68" y="43" width="34" height="26" rx="8" fill="#58a6ff" stroke="#171717" stroke-width="4"></rect>
+          <text x="85" y="60" text-anchor="middle" font-size="9" font-weight="900" fill="#171717">结果</text>
+          <path d="M18 95 Q40 84 58 95" fill="none" stroke="#171717" stroke-width="4" stroke-linecap="round"></path>
+          <path d="M16 16 L28 28" stroke="#ff5c57" stroke-width="4" stroke-linecap="round"></path>
+          <path d="M28 16 L16 28" stroke="#ff5c57" stroke-width="4" stroke-linecap="round"></path>
+        </svg>
+      `;
+    }
+
+    function updateProgress() {
+      const completed = Object.keys(state.results).length;
+      const currentBoost = state.currentIndex >= 0 && completed < levels.length ? 0.5 : 0;
+      const ratio = Math.min(levels.length, completed + currentBoost) / levels.length;
+      progressFillEl.style.width = `${ratio * 100}%`;
+    }
+
+    function showOverlay(html) {
+      overlayEl.innerHTML = html;
+      overlayEl.classList.add("show");
+      overlayEl.scrollTop = 0;
+      requestAnimationFrame(() => {
+        overlayEl.scrollTop = 0;
+      });
+    }
+
+    function hideOverlay() {
+      overlayEl.classList.remove("show");
+      overlayEl.innerHTML = "";
+    }
+
+    function loadLevel(index) {
+      state.currentIndex = index;
+      updateProgress();
+      frameEl.classList.add("visible");
+      frameEl.src = levels[index].file;
+      hideOverlay();
+    }
+
+    function renderWelcome() {
+      showOverlay(`
+        <section class="scene">
+          <div class="tag-row">
+            <span class="tag red">网感 Online</span>
+            <span class="tag blue">火柴人版</span>
+            <span class="tag yellow">旧电脑启动</span>
+          </div>
+
+          <div class="sheet tilt-left">
+            <div class="hero">
+              <div>
+                <h1>网感闯关总开关.exe</h1>
+                <p>一个被硬接在一起的破网页。点进去之后，不要太正常。</p>
+              </div>
+              <div class="doodle-box">${renderStickmanDoodle()}</div>
+            </div>
+          </div>
+
+          <div class="sheet tilt-right">
+            <p class="small-note">这台旧机器只负责把屏幕往前翻，不负责替你体面收场。</p>
+          </div>
+
+          <div class="sheet">
+            <div class="status-grid">
+              <div class="status-box" style="background:var(--red); color:#fff;">
+                <strong>4</strong>
+                <span>关卡</span>
+              </div>
+              <div class="status-box" style="background:var(--green);">
+                <strong>3</strong>
+                <span>翻页</span>
+              </div>
+              <div class="status-box" style="background:var(--blue); color:#fff;">
+                <strong>1</strong>
+                <span>结算</span>
+              </div>
+            </div>
+          </div>
+
+          <button id="start-flow-button" class="big-button" type="button">开始</button>
+        </section>
+      `);
+
+      document.getElementById("start-flow-button").addEventListener("click", () => loadLevel(0));
+    }
+
+    function renderTransition(index) {
+      const card = transitionCards[index];
+      showOverlay(`
+        <section class="scene">
+          <div class="sheet transition-sheet tilt-left">
+            <div class="doodle-box" style="margin-bottom:12px;">${renderStickmanDoodle()}</div>
+            <h2>${card.title}</h2>
+            <p>${card.copy}</p>
+          </div>
+          <button id="next-flow-button" class="big-button" type="button">继续</button>
+        </section>
+      `);
+
+      document.getElementById("next-flow-button").addEventListener("click", () => loadLevel(index + 1));
+    }
+
+    function radarMetrics() {
+      const first = state.results.first || {};
+      const second = state.results.second || {};
+      const third = state.results.third || {};
+      const forth = state.results.forth || {};
+
+      return [
+        { label: "网感值", value: Number(first.memeSense || 0), color: "var(--red)" },
+        { label: "抽象值", value: Number(first.abstractValue || 0), color: "var(--yellow)" },
+        { label: "尴尬值", value: Number(first.expressionValue || 0), color: "var(--green)" },
+        { label: "拧巴值", value: Number(second.awkwardness || 0), color: "var(--blue)" },
+        { label: "敬业值", value: Number(third.professionalism || 0), color: "var(--red)" },
+        { label: "活力值", value: Number(forth.vitality || 0), color: "var(--yellow)" }
+      ].map((item) => ({
+        ...item,
+        value: Math.max(0, Math.min(100, Math.round(item.value)))
+      }));
+    }
+
+    function pointAt(cx, cy, r, angleDeg) {
+      const rad = angleDeg * Math.PI / 180;
+      return {
+        x: cx + Math.cos(rad) * r,
+        y: cy + Math.sin(rad) * r
+      };
+    }
+
+    function buildRadarSvg(metrics, zeroMode) {
+      const cx = 160;
+      const cy = 160;
+      const radius = 112;
+      const angles = [-90, -30, 30, 90, 150, 210];
+      const rings = [0.25, 0.5, 0.75, 1];
+
+      const ringPolygons = rings.map((ratio) => {
+        const pts = angles.map((angle) => {
+          const p = pointAt(cx, cy, radius * ratio, angle);
+          return `${p.x},${p.y}`;
+        }).join(" ");
+        return `<polygon points="${pts}" fill="none" stroke="rgba(23,23,23,0.16)" stroke-width="2"></polygon>`;
+      }).join("");
+
+      const axisLines = angles.map((angle) => {
+        const p = pointAt(cx, cy, radius, angle);
+        return `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(23,23,23,0.18)" stroke-width="2"></line>`;
+      }).join("");
+
+      const values = metrics.map((metric) => zeroMode ? 0 : metric.value);
+      const pts = values.map((value, index) => {
+        const p = pointAt(cx, cy, radius * (value / 100), angles[index]);
+        return `${p.x},${p.y}`;
+      }).join(" ");
+
+      const dots = values.map((value, index) => {
+        const p = pointAt(cx, cy, radius * (value / 100), angles[index]);
+        return `<circle class="radar-dot" cx="${p.x}" cy="${p.y}" r="4"></circle>`;
+      }).join("");
+
+      const labels = metrics.map((metric, index) => {
+        const p = pointAt(cx, cy, radius + 28, angles[index]);
+        return `<text x="${p.x}" y="${p.y}" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="900" fill="#171717">${metric.label}</text>`;
+      }).join("");
+
+      return `
+        <svg viewBox="0 0 320 320" aria-label="六边形雷达图">
+          ${ringPolygons}
+          ${axisLines}
+          <polygon id="radar-shape" class="radar-value" points="${pts}"></polygon>
+          ${dots}
+          ${labels}
+        </svg>
+      `;
+    }
+
+    function animateRadar(metrics) {
+      const wrap = document.getElementById("radar-wrap");
+      if (!wrap) return;
+      wrap.innerHTML = buildRadarSvg(metrics, true);
+      requestAnimationFrame(() => {
+        wrap.innerHTML = buildRadarSvg(metrics, false);
+      });
+    }
+
+    function renderFinalSummary() {
+      const first = state.results.first || {};
+      const second = state.results.second || {};
+      const third = state.results.third || {};
+      const forth = state.results.forth || {};
+      const metrics = radarMetrics();
+
+      showOverlay(`
+        <section class="scene">
+          <div class="tag-row">
+            <span class="tag blue">网感 Online 结算画面</span>
+            <span class="tag yellow">总结果</span>
+          </div>
+
+          <div class="sheet tilt-left">
+            <div class="result-hero">
+              <div>
+                <h2 class="result-title">网感 Online 结算画面</h2>
+                <p class="summary-copy">旧电脑终于把所有账都算完了。</p>
+              </div>
+              <div class="doodle-box">${renderResultStickman()}</div>
+            </div>
+          </div>
+
+          <div class="sheet tilt-right">
+            <div id="radar-wrap" class="radar-wrap"></div>
+          </div>
+
+          <div class="sheet">
+            <div class="label-rail">
+              ${metrics.map((metric) => `
+                <div class="label-pill">
+                  <span>${metric.label}</span>
+                  <strong>${metric.value}</strong>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="sheet">
+            <div class="result-grid">
+              <div class="result-card">
+                <strong>第一关</strong>
+                ${first.title || "无记录"}<br>
+                综合分 ${first.finalScore || 0}
+              </div>
+              <div class="result-card">
+                <strong>第二关</strong>
+                ${second.title || "无记录"}<br>
+                拧巴 ${second.awkwardness || 0}
+              </div>
+              <div class="result-card">
+                <strong>第三关</strong>
+                ${third.title || "无记录"}<br>
+                敬业 ${third.professionalism || 0}
+              </div>
+              <div class="result-card">
+                <strong>第四关</strong>
+                ${forth.title || "无记录"}<br>
+                活力 ${forth.vitality || 0}
+              </div>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button id="restart-flow-button" class="big-button" type="button">再来一轮</button>
+          </div>
+        </section>
+      `);
+
+      animateRadar(metrics);
+      document.getElementById("restart-flow-button").addEventListener("click", restartAll);
+    }
+
+    function restartAll() {
+      state.currentIndex = -1;
+      state.results = {};
+      frameEl.classList.remove("visible");
+      frameEl.removeAttribute("src");
+      updateProgress();
+      renderWelcome();
+    }
+
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!data || data.type !== "hackathon-level-complete") return;
+
+      const currentLevel = levels[state.currentIndex];
+      if (!currentLevel || currentLevel.id !== data.level) return;
+
+      state.results[data.level] = data.payload;
+      updateProgress();
+
+      if (state.currentIndex < levels.length - 1) {
+        renderTransition(state.currentIndex);
+        return;
+      }
+
+      renderFinalSummary();
+    });
+
+    restartAll();
+  </script>
+</body>
+</html>

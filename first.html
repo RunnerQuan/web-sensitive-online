@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>网感测试.exe</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --paper: #f7f0cb;
+      --paper-dark: #ede3b2;
+      --ink: #171717;
+      --red: #ff5c57;
+      --blue: #58a6ff;
+      --yellow: #ffd84d;
+      --green: #7ae582;
+      --pink: #ff8cc6;
+      --bg: #d5e4ff;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255, 92, 87, 0.18), transparent 22%),
+        radial-gradient(circle at 85% 15%, rgba(88, 166, 255, 0.18), transparent 20%),
+        linear-gradient(180deg, #cfe0ff 0%, #f5f7ff 100%);
+    }
+
+    body {
+      touch-action: manipulation;
+      font-family: "Comic Sans MS", "Trebuchet MS", "Marker Felt", cursive, sans-serif;
+      color: var(--ink);
+      display: flex;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    .page-shell {
+      width: min(100vw, 430px);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+    }
+
+    .game-root {
+      position: relative;
+      width: 100%;
+      min-height: calc(100vh - 16px);
+      min-height: calc(100dvh - 16px);
+      background:
+        repeating-linear-gradient(
+          180deg,
+          rgba(80, 154, 255, 0.16) 0,
+          rgba(80, 154, 255, 0.16) 2px,
+          transparent 2px,
+          transparent 34px
+        ),
+        linear-gradient(90deg, rgba(255, 120, 120, 0.22) 0, rgba(255, 120, 120, 0.22) 3px, transparent 3px, transparent 52px),
+        linear-gradient(180deg, var(--paper) 0%, var(--paper-dark) 100%);
+      border: 4px solid var(--ink);
+      border-radius: 22px;
+      box-shadow: 10px 10px 0 rgba(23, 23, 23, 0.18);
+      overflow: hidden;
+    }
+
+    .doodle-layer,
+    .scene-layer,
+    .toast-layer {
+      position: absolute;
+      inset: 0;
+    }
+
+    .doodle-layer {
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .scene-layer {
+      z-index: 2;
+      padding: calc(14px + var(--safe-top)) 12px calc(14px + var(--safe-bottom));
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .scene-layer::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
+
+    .toast-layer {
+      z-index: 4;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: calc(16px + var(--safe-top));
+      pointer-events: none;
+    }
+
+    .scribble,
+    .scribble::before,
+    .scribble::after {
+      position: absolute;
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      opacity: 0.14;
+      content: "";
+    }
+
+    .scribble.one {
+      width: 140px;
+      height: 44px;
+      top: 28px;
+      right: -28px;
+      transform: rotate(16deg);
+    }
+
+    .scribble.two {
+      width: 108px;
+      height: 34px;
+      left: -24px;
+      bottom: 120px;
+      transform: rotate(-18deg);
+    }
+
+    .scribble.three {
+      width: 70px;
+      height: 24px;
+      right: 28px;
+      bottom: 260px;
+      transform: rotate(-4deg);
+    }
+
+    .corner-cat {
+      position: absolute;
+      right: -12px;
+      bottom: 40px;
+      width: 132px;
+      max-width: 34vw;
+      opacity: 0.84;
+      pointer-events: none;
+      filter: drop-shadow(0 8px 10px rgba(23, 23, 23, 0.18));
+      transform: rotate(-6deg);
+    }
+
+    .scribble::before {
+      inset: 9px;
+    }
+
+    .scribble::after {
+      inset: 18px;
+    }
+
+    .scene {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sheet {
+      background: rgba(255, 251, 235, 0.9);
+      border: 4px solid var(--ink);
+      border-radius: 20px;
+      padding: 14px 12px;
+      box-shadow: 6px 6px 0 rgba(23, 23, 23, 0.14);
+      position: relative;
+    }
+
+    .sheet.tilt-left {
+      transform: rotate(-1.2deg);
+    }
+
+    .sheet.tilt-right {
+      transform: rotate(1deg);
+    }
+
+    .sheet::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border: 2px dashed rgba(23, 23, 23, 0.18);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #fff;
+    }
+
+    .tag.red {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .tag.blue {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .tag.yellow {
+      background: var(--yellow);
+    }
+
+    .tag.green {
+      background: var(--green);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 108px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(28px, 7.6vw, 34px);
+      line-height: 1.06;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .small-note {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .warning-box {
+      display: grid;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .warning-line {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .warning-line b {
+      min-width: 18px;
+    }
+
+    .stickman-card {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 112px;
+      background: #fff;
+      border: 4px solid var(--ink);
+      border-radius: 16px;
+      transform: rotate(2deg);
+      position: relative;
+    }
+
+    .stickman-card::after {
+      content: "作者随手画的";
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      font-size: 10px;
+      background: var(--yellow);
+      border: 2px solid var(--ink);
+      padding: 2px 6px;
+      border-radius: 999px;
+      transform: rotate(-6deg);
+    }
+
+    .stickman-svg {
+      width: 84px;
+      height: 84px;
+      overflow: visible;
+    }
+
+    .big-button,
+    .mini-button,
+    .option-button {
+      appearance: none;
+      border: 4px solid var(--ink);
+      border-radius: 18px;
+      color: var(--ink);
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.14s ease;
+    }
+
+    .big-button:active,
+    .mini-button:active,
+    .option-button:active {
+      transform: translateY(2px) scale(0.98);
+    }
+
+    .big-button {
+      min-height: 58px;
+      width: 100%;
+      padding: 12px 14px;
+      font-size: clamp(18px, 5vw, 22px);
+      box-shadow: 4px 4px 0 rgba(23, 23, 23, 0.16);
+    }
+
+    .mini-button {
+      min-height: 46px;
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 15px;
+      box-shadow: 4px 4px 0 rgba(23, 23, 23, 0.14);
+    }
+
+    .button-red {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .button-blue {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .button-yellow {
+      background: var(--yellow);
+    }
+
+    .button-green {
+      background: var(--green);
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .status-box {
+      border: 4px solid var(--ink);
+      border-radius: 16px;
+      padding: 8px 6px;
+      text-align: center;
+      background: #fff;
+      min-height: 72px;
+    }
+
+    .status-box strong {
+      display: block;
+      font-size: 21px;
+      margin-bottom: 4px;
+    }
+
+    .status-box span {
+      display: block;
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .question-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .timer-box {
+      min-width: 86px;
+      padding: 8px 6px;
+      border: 4px solid var(--ink);
+      border-radius: 16px;
+      background: var(--yellow);
+      text-align: center;
+      transform: rotate(2deg);
+    }
+
+    .timer-number {
+      display: block;
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .timer-label {
+      display: block;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .question-box h2 {
+      margin: 0;
+      font-size: clamp(20px, 5.8vw, 26px);
+      line-height: 1.35;
+    }
+
+    .option-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option-button {
+      min-height: 64px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 8px;
+      text-align: left;
+      box-shadow: 4px 4px 0 rgba(23, 23, 23, 0.14);
+      position: relative;
+    }
+
+    .option-button.selected::after {
+      content: "已乱选";
+      position: absolute;
+      right: 10px;
+      top: -12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      transform: rotate(-8deg);
+    }
+
+    .option-letter {
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--ink);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.72);
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .option-copy {
+      font-size: 15px;
+      line-height: 1.4;
+      align-self: center;
+    }
+
+    .stats-strip {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .rough-progress {
+      height: 18px;
+      border: 4px solid var(--ink);
+      border-radius: 999px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .rough-progress-fill {
+      height: 100%;
+      width: 100%;
+      background:
+        linear-gradient(90deg, var(--red) 0 25%, var(--yellow) 25% 50%, var(--green) 50% 75%, var(--blue) 75% 100%);
+      transition: width 0.12s linear;
+    }
+
+    .result-card {
+      display: grid;
+      gap: 10px;
+    }
+
+    .result-head {
+      text-align: center;
+    }
+
+    .result-head h2 {
+      margin: 6px 0 0;
+      font-size: clamp(24px, 7vw, 32px);
+      line-height: 1.12;
+    }
+
+    .result-head p {
+      margin: 8px 0 0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .fate-layout {
+      display: grid;
+      gap: 10px;
+    }
+
+    .fate-portrait {
+      min-height: 132px;
+      display: grid;
+      place-items: center;
+      border: 4px solid var(--ink);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at center, rgba(255, 216, 77, 0.34), transparent 34%),
+        #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .fate-portrait::before,
+    .fate-portrait::after {
+      content: "";
+      position: absolute;
+      border: 3px solid rgba(23, 23, 23, 0.14);
+      border-radius: 50%;
+    }
+
+    .fate-portrait::before {
+      width: 138px;
+      height: 70px;
+      transform: rotate(12deg);
+    }
+
+    .fate-portrait::after {
+      width: 100px;
+      height: 48px;
+      transform: rotate(-8deg);
+    }
+
+    .fate-stamp {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 6px 14px;
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      background: var(--pink);
+      font-size: 12px;
+      font-weight: 700;
+      transform: rotate(-3deg);
+    }
+
+    .chart-box {
+      border: 4px solid var(--ink);
+      border-radius: 18px;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .chart-box svg {
+      display: block;
+      width: 100%;
+      height: 120px;
+    }
+
+    .record-box {
+      border: 4px dashed var(--ink);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      padding: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .button-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .toast {
+      max-width: min(88vw, 340px);
+      background: #fff;
+      border: 4px solid var(--ink);
+      border-radius: 18px;
+      padding: 12px 14px;
+      box-shadow: 6px 6px 0 rgba(23, 23, 23, 0.14);
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      animation: toast-in 0.2s ease forwards;
+    }
+
+    .toast-icon {
+      width: 34px;
+      height: 34px;
+      border: 3px solid var(--ink);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--yellow);
+      font-size: 18px;
+    }
+
+    .toast p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .footer-scratch {
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.45;
+      opacity: 0.72;
+      padding-bottom: 4px;
+    }
+
+    @keyframes toast-in {
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 430px) {
+      body {
+        padding: 0;
+      }
+
+      .page-shell {
+        width: 100vw;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+
+      .game-root {
+        min-height: 100vh;
+        min-height: 100dvh;
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        box-shadow: none;
+      }
+
+      .scene-layer {
+        padding: calc(12px + var(--safe-top)) 10px calc(14px + var(--safe-bottom));
+      }
+
+      .sheet {
+        border-width: 3px;
+        border-radius: 16px;
+        padding: 12px 10px;
+        box-shadow: 4px 4px 0 rgba(23, 23, 23, 0.12);
+      }
+
+      .sheet::before {
+        inset: 8px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .stickman-card {
+        min-height: 98px;
+        max-width: 120px;
+        justify-self: end;
+      }
+
+      .status-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .status-box {
+        min-height: 66px;
+      }
+
+      .question-header {
+        grid-template-columns: 1fr;
+      }
+
+      .timer-box {
+        justify-self: start;
+        transform: rotate(0.8deg);
+      }
+
+      .option-button {
+        min-height: 60px;
+      }
+
+      .button-stack {
+        gap: 8px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .tag {
+        min-height: 30px;
+        padding: 5px 8px;
+        font-size: 10px;
+      }
+
+      .subtitle,
+      .record-box,
+      .toast p {
+        font-size: 12px;
+      }
+
+      .warning-line,
+      .stats-strip {
+        font-size: 11px;
+      }
+
+      .big-button {
+        min-height: 54px;
+        font-size: 17px;
+      }
+
+      .mini-button {
+        min-height: 42px;
+        font-size: 14px;
+      }
+
+      .option-copy {
+        font-size: 14px;
+      }
+
+      .fate-portrait {
+        min-height: 118px;
+      }
+
+      .chart-box svg {
+        height: 108px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="game-root">
+      <div class="doodle-layer">
+        <div class="scribble one"></div>
+        <div class="scribble two"></div>
+        <div class="scribble three"></div>
+        <img class="corner-cat" src="./assets/images/first_cat.gif" alt="" aria-hidden="true">
+      </div>
+      <section id="scene-layer" class="scene-layer"></section>
+      <section id="toast-layer" class="toast-layer"></section>
+    </section>
+  </main>
+
+  <script>
+    const GAME_CONFIG = {
+      quizCount: 5,
+      questionDuration: 20
+    };
+
+    const STORAGE_KEYS = {
+      bestScore: 'stickmanLevel1_bestScore',
+      bestTitle: 'stickmanLevel1_bestTitle',
+      bestMemeSense: 'stickmanLevel1_bestMemeSense'
+    };
+
+    const FATE_POOL = [
+      {
+        id: 'abstractSaint',
+        name: '抽象圣体',
+        flavorText: '你的言语解构了逻辑，你的存在就是一场行为艺术。',
+        description: '热梗题一般坑不到你，你会直接把题面当素材二创。',
+        sealText: '免疫一部分离谱题'
+      },
+      {
+        id: 'memeOracle',
+        name: '梗学大祭司',
+        flavorText: '你的网感不是学来的，是算法连夜托梦塞给你的。',
+        description: '混乱语境对你等于明牌，你像活在评论区服务器里。',
+        sealText: '梗源透视'
+      },
+      {
+        id: 'awkwardSeer',
+        name: '社死预言家',
+        flavorText: '你对人类处境过于敏感，所以每次沉默都像提前避雷。',
+        description: '你很懂什么叫“这话说出来会死”，但又会忍不住看热闹。',
+        sealText: '社死缓冲'
+      },
+      {
+        id: 'chaosAlchemist',
+        name: '发疯炼金师',
+        flavorText: '你把失控加工成美学，把破防翻译成艺术现场。',
+        description: '越乱你越能整活，越离谱你越有灵感。',
+        sealText: '逆风显化'
+      },
+      {
+        id: 'balancedSpirit',
+        name: '三相网民',
+        flavorText: '你不是某一类人设，你像把整个评论区调成了可阅读模式。',
+        description: '三项属性都不偏科，属于难得的互联网杂食型活人。',
+        sealText: '平均但能打'
+      },
+      {
+        id: 'mortalAnchor',
+        name: '正常人类残留样本',
+        flavorText: '互联网试图污染你，但你还在坚持按字面意思做人。',
+        description: '你不是不会上网，只是还没有完全沦陷。',
+        sealText: '常识护体'
+      }
+    ];
+
+    const MEME_QUIZ_BANK = [
+      {
+        id: 'memeQuiz001',
+        question: '“一觉醒来，全世界智商下降一万倍，而我保持不变。”这句话更像在表达什么？',
+        options: [
+          { text: '是我做题做疯的幻觉。', scores: { memeSense: 10, abstractValue: 5 } },
+          { text: '我难道是百年一遇的天才？', scores: { expressionValue: 15 } },
+          { text: '这是又什么新带货手段。', scores: { expressionValue: 10, memeSense: 8 } },
+          { text: '脑洞科普新题材。', scores: { abstractValue: 15, memeSense: 10 } }
+        ],
+        answerIndex: 3,
+        correctFeedback: '这题你居然看懂了，破电脑承认你有网感。',
+        wrongFeedback: '你答得很认真，但互联网不讲道理。'
+      },
+      {
+        id: 'memeQuiz002',
+        question: '朋友圈里嘉豪发了一句“皮质醇降低中”，他的潜台词更接近哪种状态？',
+        options: [
+          { text: '压力缓解式自我安慰。', scores: { memeSense: 10 } },
+          { text: 'ta 最近在看医学科普。', scores: { expressionValue: 10 } },
+          { text: 'ta 刚吃了一顿大餐或撸了猫。', scores: { memeSense: 15 } },
+          { text: 'ta 准备去暗杀领导。', scores: { abstractValue: 20 } }
+        ],
+        answerIndex: 2,
+        correctFeedback: '不错，你还活在语境里。',
+        wrongFeedback: '你还在按字面理解，人家已经开始赛博转义了。'
+      },
+      {
+        id: 'memeQuiz003',
+        question: '博主发动态：“当时以为是我敏感了，看了一天大家的分析，我想说确实不舒服。”你的第一反应是什么？',
+        options: [
+          { text: '关切询问：你怎么了，去医院了吗？', scores: { expressionValue: 20 } },
+          { text: '默默点赞，因为你也是“不舒服文学”的继承人。', scores: { memeSense: 15 } },
+          { text: '截图保存，当作地球 Online 出 Bug 的观察记录。', scores: { abstractValue: 10, memeSense: 5 } },
+          { text: '劝他去沙威玛餐厅打工。', scores: { abstractValue: 15 } }
+        ],
+        answerIndex: 1,
+        correctFeedback: '对味了，这题就是要这种不解释的默契。',
+        wrongFeedback: '你太像现实世界的人了。'
+      },
+      {
+        id: 'memeQuiz004',
+        question: '如果你此刻的心情是“低山臭水遇雷霆”，这更像是在经历什么？',
+        options: [
+          { text: '广东气温已经不适合人类居住。', scores: { expressionValue: 15, abstractValue: 10 } },
+          { text: '终于恍然小悟，决定小发雷霆。', scores: { memeSense: 15, abstractValue: 10 } },
+          { text: '正在听《高山流水》，但耳机漏电了。', scores: { expressionValue: 10, abstractValue: 5 } },
+          { text: '准备化身牛马，开启重生之拿回我的一切。', scores: { memeSense: 10 } }
+        ],
+        answerIndex: 1,
+        correctFeedback: '四字重构文学，你算摸到门了。',
+        wrongFeedback: '你理解了一些，但还抽象。'
+      },
+      {
+        id: 'memeQuiz005',
+        question: '面对“小时候可爱，长大后潦草”的动物对比图，最佳赛博点评是？',
+        options: [
+          { text: '岁月是把杀猪刀。', scores: { expressionValue: 20 } },
+          { text: '幼年形态已经很完美，成年：我靠。', scores: { memeSense: 15 } },
+          { text: '这是伯爵基因净化失败的产物。', scores: { abstractValue: 15, memeSense: 5 } },
+          { text: '看得我皮质醇都在降低了。', scores: { memeSense: 5, expressionValue: 10 } }
+        ],
+        answerIndex: 1,
+        correctFeedback: '不错，评论区会给你点赞。',
+        wrongFeedback: '这句不够赛博，你有点太朴素。'
+      },
+      {
+        id: 'memeQuiz006',
+        question: '朋友定位在重庆并配文“落地签已办好”，这句话通常在玩什么？',
+        options: [
+          { text: '他地理没学好，把重庆当外国。', scores: { expressionValue: 15 } },
+          { text: '他拍了一组摩托车大片。', scores: { memeSense: 15 } },
+          { text: '他穿越了，试图提醒自己还在奥德赛时期。', scores: { memeSense: 10, abstractValue: 15 } },
+          { text: '正在准备去雪山救狐狸。', scores: { abstractValue: 20, memeSense: 10 } }
+        ],
+        answerIndex: 2,
+        correctFeedback: '抽象地理学这块，你合格了。',
+        wrongFeedback: '你在看地图，人家在开语境传送门。'
+      },
+      {
+        id: 'memeQuiz007',
+        question: '面对老板无休止的画大饼，你的真实状态更像哪句？',
+        options: [
+          { text: '认真倾听，努力做一条慢慢长大的小羊。', scores: { expressionValue: 15 } },
+          { text: '肚肚逼人，只想赶紧下班去玩抓大鹅。', scores: { memeSense: 10, abstractValue: 5 } },
+          { text: '表面平静，其实心里想着“我的刀盾”。', scores: { memeSense: 15 } },
+          { text: '已无力维持人形，鼠鼠我啊只能阴暗爬行。', scores: { abstractValue: 20, memeSense: 10 } }
+        ],
+        answerIndex: 3,
+        correctFeedback: '你的精神状态和互联网完成了握手。',
+        wrongFeedback: '你还在做人，这题偏偏考发疯。'
+      },
+      {
+        id: 'memeQuiz008',
+        question: '回到宿舍，室友突然对着空气大喊“let’s 显化！”，你最合理的应对是？',
+        options: [
+          { text: '贴心帮他拨打 120 精神科。', scores: { expressionValue: 20 } },
+          { text: '当面在地上阴暗爬行与他对抗。', scores: { abstractValue: 20, memeSense: 5 } },
+          { text: '假装没看见，并心想这波该留到春晚看。', scores: { memeSense: 15 } },
+          { text: '加入他，一起大喊老大每天这样幻想真的有用吗。', scores: { memeSense: 10, abstractValue: 10 } }
+        ],
+        answerIndex: 3,
+        correctFeedback: '对，就是这种能接住发疯现场的同频感。',
+        wrongFeedback: '你处理得很正常，但这题不奖正常。'
+      },
+      {
+        id: 'memeQuiz009',
+        question: '家人回复你“压力大就喝点丝瓜汤”，网友一般会把这称为什么？',
+        options: [
+          { text: '家庭养生式情绪消解。', scores: { memeSense: 15 } },
+          { text: '丝瓜种植技术交流。', scores: { expressionValue: 15 } },
+          { text: '一种古法精神封印术。', scores: { abstractValue: 15, memeSense: 5 } },
+          { text: '说明对方真的很会煲汤。', scores: { expressionValue: 10 } }
+        ],
+        answerIndex: 0,
+        correctFeedback: '你懂那种听完更无助的命名方式。',
+        wrongFeedback: '你尊重了字面义，但互联网不尊重。'
+      },
+      {
+        id: 'memeQuiz010',
+        question: '朋友把家里家具都扔了，只剩床垫和纸箱，还说这是最新风潮。这一般属于什么情况？',
+        options: [
+          { text: '老穷风 / 极简主义的高级具象化。', scores: { memeSense: 15 } },
+          { text: '家里刚遭遇盗窃，需要立刻报警。', scores: { expressionValue: 20 } },
+          { text: '染上拼豆了，家具都拿去拼 1:1 像素画了。', scores: { abstractValue: 15 } },
+          { text: '染上了听劝文学，被网友爆改的家。', scores: { memeSense: 10, abstractValue: 10 } }
+        ],
+        answerIndex: 0,
+        correctFeedback: '这波你是评论区认证用户。',
+        wrongFeedback: '你在关心现实问题，这题只关心土味命名。'
+      }
+    ];
+
+    const gameState = {
+      quizQueue: [],
+      quizIndex: 0,
+      isLocked: false,
+      countdownValue: GAME_CONFIG.questionDuration,
+      deadline: 0,
+      timers: [],
+      scores: {
+        memeSense: 0,
+        abstractValue: 0,
+        expressionValue: 0
+      },
+      result: null,
+      best: {
+        score: 0,
+        title: '暂无',
+        memeSense: 0
+      }
+    };
+
+    const flowParams = new URLSearchParams(window.location.search);
+    const isEmbeddedFlow = flowParams.get('embedded') === '1';
+
+    function notifyParentLevelComplete(payload) {
+      if (!isEmbeddedFlow || window.parent === window) return;
+      window.parent.postMessage({
+        type: 'hackathon-level-complete',
+        level: 'first',
+        payload
+      }, '*');
+    }
+
+    function initGame() {
+      loadBestScore();
+      renderStartScene();
+    }
+
+    function clearRuntime() {
+      gameState.timers.forEach((timerId) => {
+        clearTimeout(timerId);
+        clearInterval(timerId);
+      });
+      gameState.timers = [];
+      gameState.isLocked = false;
+    }
+
+    function registerTimer(timerId) {
+      gameState.timers.push(timerId);
+      return timerId;
+    }
+
+    function resetRun() {
+      clearRuntime();
+      gameState.quizQueue = shuffleArray(MEME_QUIZ_BANK.slice()).slice(0, GAME_CONFIG.quizCount);
+      gameState.quizIndex = 0;
+      gameState.countdownValue = GAME_CONFIG.questionDuration;
+      gameState.deadline = 0;
+      gameState.scores.memeSense = 0;
+      gameState.scores.abstractValue = 0;
+      gameState.scores.expressionValue = 0;
+      gameState.result = null;
+    }
+
+    function renderStartScene() {
+      clearRuntime();
+      const sceneLayer = document.getElementById('scene-layer');
+      sceneLayer.innerHTML = `
+        <section class="scene">
+          <div class="tag-row">
+            <span class="tag red">单机闯关页</span>
+            <span class="tag blue">便宜小游戏</span>
+            <span class="tag yellow">破电脑驱动</span>
+          </div>
+
+          <div class="sheet tilt-left">
+            <div class="hero">
+              <div>
+                <h1 class="title">网感测试.exe</h1>
+                <p class="subtitle">
+                  一个看起来像作业本边角料的网页小游戏。<br>
+                  你要在 5 道抽象题里活下来，然后让破电脑给你生成命格。
+                </p>
+              </div>
+              <div class="stickman-card">
+                ${renderStickmanSvg('start')}
+              </div>
+            </div>
+          </div>
+
+          <div class="sheet tilt-right">
+            <div class="warning-box">
+              <div class="warning-line"><b>!</b><span>本游戏不保证科学，只保证土。</span></div>
+              <div class="warning-line"><b>!</b><span>每题限时 ${GAME_CONFIG.questionDuration} 秒，超时判定你突然走神。</span></div>
+              <div class="warning-line"><b>!</b><span>历史最佳：${escapeHtml(gameState.best.title)} / ${gameState.best.score} 分 / 网感 ${gameState.best.memeSense}</span></div>
+            </div>
+          </div>
+
+          <div class="sheet">
+            <div class="status-grid">
+              <div class="status-box" style="background:${cssColor('yellow')}">
+                <strong>5</strong>
+                <span>随机题</span>
+              </div>
+              <div class="status-box" style="background:${cssColor('green')}">
+                <strong>20s</strong>
+                <span>每题限时</span>
+              </div>
+              <div class="status-box" style="background:${cssColor('blue')}; color:#fff;">
+                <strong>命格</strong>
+                <span>测完自动生成</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="big-button button-red" id="start-run-button">开始闯关</button>
+          <button class="mini-button button-yellow" id="show-rule-button">先看破规则</button>
+
+          <div class="footer-scratch">本页由某台吱呀乱响的旧电脑友情提供</div>
+        </section>
+      `;
+
+      document.getElementById('start-run-button').addEventListener('click', () => {
+        resetRun();
+        showToast('破电脑启动成功，开始扫描你的网感。', '💻');
+        renderQuizScene();
+      });
+
+      document.getElementById('show-rule-button').addEventListener('click', () => {
+        showToast('规则很简单：快答题，别太正常，最后等系统给你发命格单。', '📎');
+      });
+    }
+
+    function renderQuizScene() {
+      const sceneLayer = document.getElementById('scene-layer');
+      const quiz = gameState.quizQueue[gameState.quizIndex];
+
+      if (!quiz) {
+        buildResult();
+        if (isEmbeddedFlow) {
+          notifyParentLevelComplete({
+            success: true,
+            title: gameState.result.fate.name,
+            mockTitle: gameState.result.mockTitle,
+            finalScore: gameState.result.finalScore,
+            memeSense: gameState.result.traitScores.memeSense,
+            abstractValue: gameState.result.traitScores.abstractValue,
+            expressionValue: gameState.result.traitScores.expressionValue
+          });
+          return;
+        }
+        renderResultScene();
+        return;
+      }
+
+      sceneLayer.innerHTML = `
+        <section class="scene">
+          <div class="tag-row">
+            <span class="tag red">第 ${gameState.quizIndex + 1} 题 / ${GAME_CONFIG.quizCount}</span>
+            <span class="tag green">课堂小测模式</span>
+          </div>
+
+          <div class="sheet tilt-left">
+            <div class="question-header">
+              <div class="question-box">
+                <h2>${escapeHtml(quiz.question)}</h2>
+              </div>
+              <div class="timer-box">
+                <span id="timer-number" class="timer-number">${GAME_CONFIG.questionDuration}</span>
+                <span class="timer-label">秒内乱答</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="sheet tilt-right">
+            <div class="stats-strip">
+              <span>网感 ${gameState.scores.memeSense}</span>
+              <span>抽象 ${gameState.scores.abstractValue}</span>
+              <span>尴尬 ${gameState.scores.expressionValue}</span>
+            </div>
+            <div class="rough-progress">
+              <div id="timer-fill" class="rough-progress-fill"></div>
+            </div>
+          </div>
+
+          <div class="option-list">
+            ${quiz.options.map((option, index) => `
+              <button class="option-button ${optionColorClass(index)}" data-option-index="${index}">
+                <span class="option-letter">${String.fromCharCode(65 + index)}</span>
+                <span class="option-copy">${escapeHtml(option.text)}</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="footer-scratch">提示：本游戏奖励“懂梗”和“会发疯”，不奖励过于正常</div>
+        </section>
+      `;
+
+      Array.from(sceneLayer.querySelectorAll('.option-button')).forEach((button) => {
+        button.addEventListener('click', () => {
+          if (gameState.isLocked) return;
+          const optionIndex = Number(button.dataset.optionIndex);
+          Array.from(sceneLayer.querySelectorAll('.option-button')).forEach((node) => node.classList.remove('selected'));
+          button.classList.add('selected');
+          resolveAnswer(optionIndex);
+        });
+      });
+
+      startCountdown();
+    }
+
+    function startCountdown() {
+      gameState.deadline = Date.now() + GAME_CONFIG.questionDuration * 1000;
+      gameState.countdownValue = GAME_CONFIG.questionDuration;
+
+      registerTimer(setInterval(() => {
+        const msLeft = Math.max(0, gameState.deadline - Date.now());
+        const secondsLeft = Math.ceil(msLeft / 1000);
+        const ratio = Math.max(0, msLeft / (GAME_CONFIG.questionDuration * 1000));
+
+        const timerNumber = document.getElementById('timer-number');
+        const timerFill = document.getElementById('timer-fill');
+
+        if (timerNumber) {
+          timerNumber.textContent = String(secondsLeft);
+          timerNumber.style.color = secondsLeft <= 5 ? '#b8001f' : '';
+        }
+
+        if (timerFill) {
+          timerFill.style.width = `${ratio * 100}%`;
+        }
+
+        if (msLeft <= 0) {
+          resolveTimeout();
+        }
+      }, 100));
+    }
+
+    function resolveAnswer(optionIndex) {
+      if (gameState.isLocked) return;
+      gameState.isLocked = true;
+      clearRuntime();
+
+      const quiz = gameState.quizQueue[gameState.quizIndex];
+      const option = quiz.options[optionIndex];
+      const isBest = optionIndex === quiz.answerIndex;
+
+      Object.entries(option.scores).forEach(([key, amount]) => {
+        gameState.scores[key] += amount;
+      });
+
+      showToast(isBest ? quiz.correctFeedback : quiz.wrongFeedback, isBest ? '✔' : '？');
+
+      registerTimer(setTimeout(() => {
+        nextQuestion();
+      }, 780));
+    }
+
+    function resolveTimeout() {
+      if (gameState.isLocked) return;
+      gameState.isLocked = true;
+      clearRuntime();
+      gameState.scores.expressionValue += 8;
+      showToast('你超时了。系统判断你突然看着题目发呆。', '⌛');
+
+      registerTimer(setTimeout(() => {
+        nextQuestion();
+      }, 780));
+    }
+
+    function nextQuestion() {
+      gameState.quizIndex += 1;
+      gameState.isLocked = false;
+      renderQuizScene();
+    }
+
+    function buildResult() {
+      const traitScores = buildNormalizedTraitScores();
+      const fate = determineFate(traitScores);
+      const finalScore = Math.max(
+        0,
+        Math.round(
+          traitScores.memeSense * 0.42 +
+          traitScores.abstractValue * 0.33 +
+          traitScores.expressionValue * 0.25
+        )
+      );
+
+      gameState.result = {
+        fate,
+        finalScore,
+        traitScores,
+        mockTitle: pickMockTitle(finalScore),
+        strongest: getStrongestTrait(traitScores),
+        weakest: getWeakestTrait(traitScores)
+      };
+
+      saveBestScore();
+    }
+
+    function buildNormalizedTraitScores() {
+      const traitKeys = ['memeSense', 'abstractValue', 'expressionValue'];
+      const maxScores = {
+        memeSense: 0,
+        abstractValue: 0,
+        expressionValue: 0
+      };
+
+      gameState.quizQueue.forEach((quiz) => {
+        traitKeys.forEach((key) => {
+          const questionMax = Math.max(
+            ...quiz.options.map((option) => Number(option.scores[key] || 0))
+          );
+          maxScores[key] += questionMax;
+        });
+      });
+
+      return traitKeys.reduce((acc, key) => {
+        const rawScore = Number(gameState.scores[key] || 0);
+        const maxScore = Number(maxScores[key] || 0);
+        acc[key] = maxScore > 0 ? Math.round((rawScore / maxScore) * 100) : 0;
+        return acc;
+      }, {});
+    }
+
+    function determineFate(traitScores) {
+      const sorted = [
+        { key: 'memeSense', value: traitScores.memeSense },
+        { key: 'abstractValue', value: traitScores.abstractValue },
+        { key: 'expressionValue', value: traitScores.expressionValue }
+      ].sort((a, b) => b.value - a.value);
+
+      const isBalanced = Math.abs(sorted[0].value - sorted[2].value) <= 8 && sorted[0].value >= 18;
+      if (isBalanced) return findFate('balancedSpirit');
+
+      const dominant = sorted[0].key;
+      const secondary = sorted[1].key;
+
+      if (dominant === 'abstractValue' && secondary === 'memeSense') return findFate('abstractSaint');
+      if (dominant === 'memeSense' && secondary === 'abstractValue') return findFate('memeOracle');
+      if (dominant === 'expressionValue' && secondary === 'memeSense') return findFate('awkwardSeer');
+      if (
+        (dominant === 'abstractValue' && secondary === 'expressionValue') ||
+        (dominant === 'expressionValue' && secondary === 'abstractValue')
+      ) {
+        return findFate('chaosAlchemist');
+      }
+      if (dominant === 'expressionValue') return findFate('mortalAnchor');
+      return findFate('memeOracle');
+    }
+
+    function renderResultScene() {
+      clearRuntime();
+      const sceneLayer = document.getElementById('scene-layer');
+      const result = gameState.result;
+      const traitScores = result.traitScores;
+
+      sceneLayer.innerHTML = `
+        <section class="scene">
+          <div class="tag-row">
+            <span class="tag blue">命格单已打印</span>
+            <span class="tag yellow">破电脑评价页</span>
+          </div>
+
+          <div class="sheet tilt-left result-card">
+            <div class="result-head">
+              <div class="tag-row" style="justify-content:center;">
+                <span class="tag green">${escapeHtml(result.mockTitle)}</span>
+              </div>
+              <h2>${escapeHtml(result.fate.name)}</h2>
+              <p>${escapeHtml(result.fate.flavorText)}</p>
+            </div>
+
+            <div class="fate-layout">
+              <div class="fate-portrait">
+                ${renderStickmanSvg('result')}
+              </div>
+              <div style="display:flex; justify-content:center;">
+                <span class="fate-stamp">[ ${escapeHtml(result.fate.sealText)} ]</span>
+              </div>
+            </div>
+
+            <div class="status-grid">
+              <div class="status-box" style="background:${cssColor('red')}; color:#fff;">
+                <strong>${traitScores.memeSense}</strong>
+                <span>网感值</span>
+              </div>
+              <div class="status-box" style="background:${cssColor('yellow')}">
+                <strong>${traitScores.abstractValue}</strong>
+                <span>抽象值</span>
+              </div>
+              <div class="status-box" style="background:${cssColor('green')}">
+                <strong>${traitScores.expressionValue}</strong>
+                <span>尴尬值</span>
+              </div>
+            </div>
+
+            <div class="chart-box">
+              ${renderTriangleChart()}
+            </div>
+
+            <div class="record-box">
+              <strong>命格备注：</strong>${escapeHtml(result.fate.description)}<br>
+              <strong>综合分：</strong>${result.finalScore} · <strong>本地最佳：</strong>${escapeHtml(gameState.best.title)} / ${gameState.best.score}<br>
+              <strong>主属性：</strong>${escapeHtml(result.strongest.label)} / <strong>次短板：</strong>${escapeHtml(result.weakest.label)}
+            </div>
+          </div>
+
+          <div class="button-stack">
+            <button class="big-button button-blue" id="copy-result-button">复制我的破命格</button>
+            ${isEmbeddedFlow ? '<button class="big-button button-green" id="next-level-button">进入第二关</button>' : ''}
+            <button class="big-button button-red" id="retry-button">再测一次</button>
+            <button class="mini-button button-yellow" id="back-button">回开始页</button>
+          </div>
+
+          <div class="footer-scratch">系统提示：结果仅供发群，不供报销</div>
+        </section>
+      `;
+
+      document.getElementById('copy-result-button').addEventListener('click', copyResultText);
+      if (isEmbeddedFlow) {
+        document.getElementById('next-level-button').addEventListener('click', () => {
+          notifyParentLevelComplete({
+            success: true,
+            title: result.fate.name,
+            mockTitle: result.mockTitle,
+            finalScore: result.finalScore,
+            memeSense: result.traitScores.memeSense,
+            abstractValue: result.traitScores.abstractValue,
+            expressionValue: result.traitScores.expressionValue
+          });
+        });
+      }
+      document.getElementById('retry-button').addEventListener('click', () => {
+        resetRun();
+        renderQuizScene();
+      });
+      document.getElementById('back-button').addEventListener('click', renderStartScene);
+      showToast(`破电脑出单成功：${result.fate.name}`, '🧾');
+    }
+
+    function copyResultText() {
+      const result = gameState.result;
+      const text = [
+        '网感测试.exe 结果单',
+        `命格：${result.fate.name}`,
+        `土味称号：${result.mockTitle}`,
+        `网感值：${result.traitScores.memeSense}`,
+        `抽象值：${result.traitScores.abstractValue}`,
+        `尴尬值：${result.traitScores.expressionValue}`,
+        `评语：${result.fate.flavorText}`
+      ].join('\n');
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast('结果文案已复制，可以去群里丢人了。', '📋'))
+          .catch(() => showToast('当前环境不让复制，直接截图吧。', '📷'));
+        return;
+      }
+
+      showToast('离线双击场景大概率不给剪贴板权限，建议直接截图。', '📷');
+    }
+
+    function showToast(text, icon) {
+      const toastLayer = document.getElementById('toast-layer');
+      toastLayer.innerHTML = `
+        <div class="toast">
+          <div class="toast-icon">${escapeHtml(icon)}</div>
+          <p>${escapeHtml(text)}</p>
+        </div>
+      `;
+      registerTimer(setTimeout(() => {
+        toastLayer.innerHTML = '';
+      }, 1800));
+    }
+
+    function renderTriangleChart() {
+      const meme = clamp(gameState.result.traitScores.memeSense, 0, 100);
+      const abs = clamp(gameState.result.traitScores.abstractValue, 0, 100);
+      const awkward = clamp(gameState.result.traitScores.expressionValue, 0, 100);
+      const cx = 150;
+      const cy = 74;
+      const r = 58;
+
+      const points = [
+        pointAt(cx, cy, r * (meme / 100), -90),
+        pointAt(cx, cy, r * (abs / 100), 150),
+        pointAt(cx, cy, r * (awkward / 100), 30)
+      ];
+
+      return `
+        <svg viewBox="0 0 300 150" aria-label="三角属性图">
+          <polygon points="150,18 84,124 216,124" fill="none" stroke="#171717" stroke-width="3"></polygon>
+          <polygon points="150,36 101,110 199,110" fill="none" stroke="rgba(23,23,23,0.18)" stroke-width="2"></polygon>
+          <line x1="150" y1="18" x2="150" y2="124" stroke="rgba(23,23,23,0.18)" stroke-width="2"></line>
+          <line x1="84" y1="124" x2="216" y2="124" stroke="rgba(23,23,23,0.18)" stroke-width="2"></line>
+          <line x1="150" y1="18" x2="84" y2="124" stroke="rgba(23,23,23,0.18)" stroke-width="2"></line>
+          <line x1="150" y1="18" x2="216" y2="124" stroke="rgba(23,23,23,0.18)" stroke-width="2"></line>
+          <polygon points="${points.map((p) => `${p.x},${p.y}`).join(' ')}" fill="rgba(255,92,87,0.45)" stroke="#171717" stroke-width="3"></polygon>
+          ${points.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#171717"></circle>`).join('')}
+          <text x="150" y="12" text-anchor="middle" font-size="13" fill="#171717">网感值</text>
+          <text x="70" y="138" text-anchor="middle" font-size="13" fill="#171717">抽象值</text>
+          <text x="230" y="138" text-anchor="middle" font-size="13" fill="#171717">尴尬值</text>
+        </svg>
+      `;
+    }
+
+    function renderStickmanSvg(mode) {
+      if (mode === 'result') {
+        return `
+          <svg class="stickman-svg" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="18" r="10" fill="none" stroke="#171717" stroke-width="4"></circle>
+            <line x1="50" y1="28" x2="50" y2="58" stroke="#171717" stroke-width="4" stroke-linecap="round"></line>
+            <line x1="50" y1="36" x2="30" y2="46" stroke="#171717" stroke-width="4" stroke-linecap="round"></line>
+            <line x1="50" y1="36" x2="70" y2="28" stroke="#171717" stroke-width="4" stroke-linecap="round"></line>
+            <line x1="50" y1="58" x2="34" y2="84" stroke="#171717" stroke-width="4" stroke-linecap="round"></line>
+            <line x1="50" y1="58" x2="68" y2="84" stroke="#171717" stroke-width="4" stroke-linecap="round"></line>
+            <path d="M68 24 C74 20, 80 22, 82 28" fill="none" stroke="#ff5c57" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M21 64 C28 58, 32 58, 38 64" fill="none" stroke="#58a6ff" stroke-width="4" stroke-linecap="round"></path>
+          </svg>
+        `;
+      }
+
+      return `
+        <svg class="stickman-svg" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="48" cy="18" r="10" fill="none" stroke="#171717" stroke-width="4"></circle>
+          <line x1="48" y1="28" x2="48" y2="58" stroke="#171717" stroke-width="4" stroke-linecap="round"></line>
+          <line x1="48" y1="38" x2="24" y2="28" stroke="#171717" stroke-width="4" stroke-linecap="round"></line>
+          <line x1="48" y1="38" x2="74" y2="42" stroke="#171717" stroke-width="4" stroke-linecap="round"></line>
+          <line x1="48" y1="58" x2="30" y2="84" stroke="#171717" stroke-width="4" stroke-linecap="round"></line>
+          <line x1="48" y1="58" x2="62" y2="84" stroke="#171717" stroke-width="4" stroke-linecap="round"></line>
+          <rect x="64" y="22" width="24" height="20" rx="4" fill="#ffd84d" stroke="#171717" stroke-width="3"></rect>
+          <text x="76" y="36" text-anchor="middle" font-size="8" font-family="Comic Sans MS, cursive" fill="#171717">开测</text>
+        </svg>
+      `;
+    }
+
+    function getStrongestTrait(traitScores) {
+      return [
+        { label: '网感值', value: traitScores.memeSense },
+        { label: '抽象值', value: traitScores.abstractValue },
+        { label: '尴尬值', value: traitScores.expressionValue }
+      ].sort((a, b) => b.value - a.value)[0];
+    }
+
+    function getWeakestTrait(traitScores) {
+      return [
+        { label: '网感值', value: traitScores.memeSense },
+        { label: '抽象值', value: traitScores.abstractValue },
+        { label: '尴尬值', value: traitScores.expressionValue }
+      ].sort((a, b) => a.value - b.value)[0];
+    }
+
+    function pickMockTitle(finalScore) {
+      if (finalScore >= 85) return '高级网民合格证';
+      if (finalScore >= 55) return '轻度抽象通过单';
+      return '破防观察对象';
+    }
+
+    function findFate(id) {
+      return FATE_POOL.find((item) => item.id === id);
+    }
+
+    function optionColorClass(index) {
+      return [
+        'button-yellow',
+        'button-blue',
+        'button-green',
+        'button-red'
+      ][index % 4];
+    }
+
+    function shuffleArray(list) {
+      const copy = list.slice();
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function pointAt(cx, cy, radius, angleDeg) {
+      const rad = (angleDeg - 90) * (Math.PI / 180);
+      return {
+        x: cx + radius * Math.cos(rad),
+        y: cy + radius * Math.sin(rad)
+      };
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function cssColor(name) {
+      return {
+        red: '#ff5c57',
+        blue: '#58a6ff',
+        yellow: '#ffd84d',
+        green: '#7ae582'
+      }[name];
+    }
+
+    function saveBestScore() {
+      const score = gameState.result.finalScore;
+      const title = gameState.result.fate.name;
+      const memeSense = gameState.result.traitScores.memeSense;
+
+      if (score >= gameState.best.score) {
+        gameState.best.score = score;
+        gameState.best.title = title;
+        gameState.best.memeSense = memeSense;
+      }
+
+      try {
+        localStorage.setItem(STORAGE_KEYS.bestScore, String(gameState.best.score));
+        localStorage.setItem(STORAGE_KEYS.bestTitle, gameState.best.title);
+        localStorage.setItem(STORAGE_KEYS.bestMemeSense, String(gameState.best.memeSense));
+      } catch (error) {
+        console.warn('保存失败：', error);
+      }
+    }
+
+    function loadBestScore() {
+      try {
+        gameState.best.score = Number(localStorage.getItem(STORAGE_KEYS.bestScore) || 0);
+        gameState.best.title = localStorage.getItem(STORAGE_KEYS.bestTitle) || '暂无';
+        gameState.best.memeSense = Number(localStorage.getItem(STORAGE_KEYS.bestMemeSense) || 0);
+      } catch (error) {
+        console.warn('读取失败：', error);
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    window.addEventListener('error', (event) => {
+      showToast(`页面抽风了：${event.message || '未知问题'}`, '💥');
+    });
+
+    window.addEventListener('unhandledrejection', () => {
+      showToast('有个异步流程半路掉沟里了。', '💥');
+    });
+
+    document.addEventListener('DOMContentLoaded', initGame);
+  </script>
+</body>
+</html>

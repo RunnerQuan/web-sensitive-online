@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>拧巴工坊 - 猫爪果冻钉</title>
+  <style>
+    :root{
+      --bg1:#d7eff1;
+      --bg2:#c7e8e8;
+      --mint:#19d1a4;
+      --pink:#ff6f97;
+      --pink-soft:#ffc5d8;
+      --blue:#63a8ff;
+      --green:#46d7a1;
+      --purple:#b37cff;
+      --yellow:#ffbc4b;
+      --dark:#243845;
+      --soft-text:#5d808c;
+      --panel:rgba(255,255,255,.42);
+      --panel-strong:rgba(255,255,255,.62);
+      --shadow:0 10px 30px rgba(60,110,122,.12);
+      --line:rgba(255,255,255,.78);
+      --danger:#ff708f;
+      --danger-soft:#ffd6e0;
+    }
+
+    *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+    html,body{margin:0;padding:0;height:100%;font-family:"Arial Rounded MT Bold","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,var(--bg1),#cdecee 45%,#c4e3e5 100%);color:var(--dark);overflow:hidden;}
+    body{display:flex;align-items:center;justify-content:center;}
+
+    .app{
+      position:relative;
+      width:min(100vw,430px);
+      height:100dvh;
+      max-height:932px;
+      overflow:hidden;
+      background:linear-gradient(180deg,#cbe9ea 0%, #c8e6e7 40%, #bfe1e2 100%);
+      border-inline:6px solid #9bc8c9;
+    }
+
+    .bg-bubble,.bg-bubble2,.bg-bubble3{position:absolute;filter:blur(.2px);pointer-events:none;}
+    .bg-bubble{width:210px;height:210px;left:-44px;top:95px;border-radius:42% 58% 55% 45% / 47% 50% 50% 53%;background:linear-gradient(135deg, rgba(255,182,202,.65), rgba(255,211,225,.25));border:2px solid rgba(255,255,255,.56);box-shadow:inset 0 0 28px rgba(255,255,255,.5);}
+    .bg-bubble2{width:240px;height:210px;right:-70px;bottom:130px;border-radius:48% 52% 42% 58% / 55% 40% 60% 45%;background:linear-gradient(135deg, rgba(161,255,223,.4), rgba(255,255,255,.12));border:2px solid rgba(255,255,255,.35);}
+    .bg-bubble3{width:190px;height:190px;left:30px;bottom:-40px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,.18), rgba(255,255,255,0));}
+    .corner-cat{position:absolute;left:-6px;bottom:18px;width:122px;max-width:32vw;opacity:.82;pointer-events:none;filter:drop-shadow(0 10px 12px rgba(60,110,122,.18));transform:rotate(-3deg);z-index:1;}
+
+    .screen{position:absolute;inset:0;padding:24px 20px 20px;display:none;}
+    .screen.active{display:flex;flex-direction:column;}
+
+    .glass{
+      background:var(--panel);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+    }
+
+    .card{border-radius:34px;}
+
+    /* cute text */
+    .cute-pill{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:8px 18px;border-radius:999px;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.85);
+      box-shadow:0 4px 14px rgba(88,120,130,.12);
+      font-weight:900;letter-spacing:1px;color:#1f3038;
+    }
+
+    .cat-title{
+      font-weight:900;
+      letter-spacing:1px;
+      line-height:1.2;
+      color:#23262c;
+      text-shadow:
+        0 3px 0 rgba(255,255,255,.95),
+        0 6px 12px rgba(88,120,130,.18);
+      -webkit-text-stroke:1px rgba(30,45,55,.14);
+      position:relative;
+    }
+    .cat-title .ears,
+    .cat-title .pawdot{position:absolute;font-size:.34em;color:#ff7da3;}
+    .cat-title .ears{top:-8px;left:8px;transform:rotate(-8deg)}
+    .cat-title .pawdot{right:-2px;bottom:8px;}
+    .sub-cat{font-size:15px;font-weight:800;color:#27343d;letter-spacing:2px;text-align:center;}
+    .sub-cat .graypaw{opacity:.45;margin:0 6px;}
+
+    .btn{
+      appearance:none;border:none;outline:none;cursor:pointer;
+      border-radius:999px;padding:0 18px;height:56px;font-size:16px;font-weight:900;color:#fff;
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      background:linear-gradient(90deg,#61a9ff 0%, #22d3ae 100%);
+      box-shadow:0 10px 25px rgba(34,211,174,.28), inset 0 2px 0 rgba(255,255,255,.38);
+      border:1px solid rgba(255,255,255,.65);
+      transition:.18s transform ease,.18s opacity ease;
+    }
+    .btn:active{transform:scale(.97)}
+    .btn.secondary{background:rgba(255,255,255,.72);color:#2f3b45;box-shadow:var(--shadow);}
+    .btn.danger{background:linear-gradient(90deg,#ff8cab,#ff6d8d);}
+    .btn[disabled]{opacity:.45;cursor:not-allowed;filter:grayscale(.18)}
+
+    .start-wrap{flex:1;display:flex;align-items:center;justify-content:center;}
+    .start-card{width:100%;padding:34px 26px 28px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;}
+    .start-title{font-size:32px;margin:0;}
+    .start-sub{color:var(--soft-text);font-weight:800;letter-spacing:2px;margin-top:-4px;margin-bottom:12px;}
+    .sample-screws{display:flex;gap:18px;margin-bottom:12px;}
+
+    .screw-sample,.screw,.slot-dot,.status-mini{
+      border-radius:50%;
+      background:#fff;
+      position:relative;
+      box-shadow:
+        inset -3px -3px 8px rgba(0,0,0,.10),
+        inset 4px 4px 9px rgba(255,255,255,.95),
+        0 8px 18px rgba(72,110,122,.16);
+      border:1px solid rgba(255,255,255,.72);
+    }
+    .screw-sample{width:46px;height:46px;}
+    .screw-sample::before,.screw::before{
+      content:"✚";
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      font-size:20px;font-weight:900;color:rgba(35,51,60,.38);
+      text-shadow:0 1px 0 rgba(255,255,255,.5);
+    }
+    .pink{background:radial-gradient(circle at 30% 28%, #ffd1df 0%, #ff88ad 48%, #ff618d 100%);}
+    .green{background:radial-gradient(circle at 30% 28%, #dcffe9 0%, #6de3b9 50%, #33c997 100%);}
+    .blue{background:radial-gradient(circle at 30% 28%, #e2eeff 0%, #89beff 54%, #4c97fb 100%);}
+    .purple{background:radial-gradient(circle at 30% 28%, #eddfff 0%, #c99aff 54%, #a363ff 100%);}
+    .yellow{background:radial-gradient(circle at 30% 28%, #fff2c8 0%, #ffd16a 54%, #ffb13b 100%);}
+
+    .screw-sample::after,.screw::after{
+      content:"";position:absolute;left:12%;top:12%;width:34%;height:34%;border-radius:50%;
+      background:rgba(255,255,255,.85);filter:blur(.8px);
+    }
+
+    .header{display:flex;justify-content:space-between;align-items:center;margin-top:2px;}
+    .icon-btn{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#202930}
+    .level-tag{padding:10px 26px;font-size:18px;}
+
+    .hud{margin-top:18px;display:flex;flex-direction:column;gap:12px;}
+    .top-bars{display:grid;grid-template-columns:1fr 1fr 112px;gap:12px;}
+    .plate-box{border-radius:20px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:3px solid rgba(255,255,255,.65);background:rgba(255,255,255,.45);min-height:72px;box-shadow:var(--shadow)}
+    .plate-box.pink-edge{border-color:#ff799f;}
+    .plate-box.green-edge{border-color:#1ec99b;}
+    .plate-box.gray-edge{border-color:#bcbec2;color:#80858b;justify-content:center;flex-direction:column;gap:4px;font-weight:900;}
+    .status-mini{width:32px;height:32px;flex:0 0 auto;}
+    .status-dots{display:flex;gap:8px;}
+    .status-dot{width:23px;height:23px;border-radius:50%;background:rgba(199,216,220,.65);box-shadow: inset 0 2px 3px rgba(255,255,255,.7), inset 0 -2px 4px rgba(67,110,120,.15);}
+    .status-dot.done.pink{background:radial-gradient(circle at 35% 30%, #ffe0ea 0, #ff7ea2 70%, #ff628e 100%);}
+    .status-dot.done.green{background:radial-gradient(circle at 35% 30%, #e4ffef 0, #57ddb0 70%, #1ecb99 100%);}
+
+    .inventory{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:22px;min-height:66px;}
+    .slot-row{display:flex;gap:10px;flex-wrap:nowrap;}
+    .slot-dot{width:38px;height:38px;background:rgba(211,228,232,.8);box-shadow:inset 0 2px 6px rgba(255,255,255,.8), inset 0 -2px 4px rgba(50,90,100,.13);} 
+    .slot-dot.filled::before{content:"✚";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(35,51,60,.38);}
+    .hint-strip{margin-top:10px;padding:10px 14px;border-radius:999px;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;color:#2e3941}
+
+    .board-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:12px 0 0;}
+    .board{position:relative;width:min(82vw,312px);height:min(82vw,312px);max-width:312px;max-height:312px;}
+    .acrylic{
+      position:absolute;border:2px solid rgba(255,255,255,.68);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+      box-shadow: inset 0 0 16px rgba(255,255,255,.45), 0 14px 28px rgba(88,120,130,.14);
+      transition:transform .55s cubic-bezier(.22,1,.36,1), opacity .45s ease;
+    }
+    .plate-pink{
+      left:48px;top:42px;width:190px;height:178px;z-index:5;
+      background:linear-gradient(145deg, rgba(255,208,221,.62), rgba(255,171,198,.28));
+      border-radius:44% 48% 42% 46% / 38% 42% 46% 52%;
+    }
+    .plate-pink .toe{position:absolute;border-radius:50%;background:linear-gradient(145deg, rgba(255,215,226,.72), rgba(255,170,198,.32));border:2px solid rgba(255,255,255,.66);box-shadow:inset 0 0 10px rgba(255,255,255,.4);} 
+    .plate-pink .toe.t1{width:40px;height:40px;left:16px;top:10px}
+    .plate-pink .toe.t2{width:40px;height:40px;left:62px;top:0px}
+    .plate-pink .toe.t3{width:40px;height:40px;left:108px;top:12px}
+    .plate-pink .toe.t4{width:40px;height:40px;left:146px;top:22px}
+    .plate-pink .pad{position:absolute;left:34px;top:62px;width:112px;height:90px;border-radius:46% 46% 52% 52% / 46% 44% 58% 54%;background:linear-gradient(145deg, rgba(255,189,206,.86), rgba(255,154,186,.28));border:2px solid rgba(255,255,255,.68);box-shadow:inset 0 0 14px rgba(255,255,255,.4);}
+
+    .plate-green{left:120px;top:124px;width:150px;height:136px;z-index:3;background:linear-gradient(145deg, rgba(214,255,235,.55), rgba(128,230,198,.22));border-radius:42% 48% 52% 45% / 46% 44% 56% 54%;}
+    .plate-purple{left:134px;top:52px;width:138px;height:180px;z-index:2;background:linear-gradient(145deg, rgba(233,216,255,.5), rgba(195,150,255,.18));border-radius:40% 46% 50% 44% / 46% 52% 48% 56%;}
+    .plate-base{left:34px;top:138px;width:170px;height:104px;z-index:1;background:linear-gradient(145deg, rgba(234,251,255,.55), rgba(171,225,255,.18));border-radius:48% 46% 56% 40% / 48% 50% 50% 54%;transform:rotate(-6deg);}
+
+    .plate-hidden-pink{transform:translate(-80px,-52px) rotate(-18deg);opacity:0;pointer-events:none;}
+    .plate-hidden-green{transform:translate(72px,66px) rotate(18deg);opacity:0;pointer-events:none;}
+    .plate-hidden-purple{transform:translate(82px,-12px) rotate(18deg);opacity:0;pointer-events:none;}
+
+    .screw{
+      position:absolute;width:44px;height:44px;z-index:10;border:none;cursor:pointer;
+      transition:transform .18s ease, opacity .26s ease, filter .2s ease, box-shadow .22s ease;
+    }
+    .screw:active{transform:scale(.95)}
+    .screw.exposed{animation:pulseGlow 2s infinite ease-in-out;}
+    .screw.covered{opacity:.44;filter:grayscale(.28) saturate(.75);}
+    .screw.removed{opacity:0;transform:scale(.2) rotate(150deg);pointer-events:none;}
+    @keyframes pulseGlow{
+      0%,100%{box-shadow:inset -3px -3px 8px rgba(0,0,0,.10), inset 4px 4px 9px rgba(255,255,255,.95), 0 8px 18px rgba(72,110,122,.16), 0 0 0 rgba(255,255,255,.0)}
+      50%{box-shadow:inset -3px -3px 8px rgba(0,0,0,.10), inset 4px 4px 9px rgba(255,255,255,.95), 0 8px 18px rgba(72,110,122,.16), 0 0 22px rgba(255,255,255,.75)}
+    }
+
+    .hole{position:absolute;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%, rgba(170,200,206,.8), rgba(126,162,170,.5));opacity:0;transform:scale(.5);transition:.24s ease;z-index:0;box-shadow:inset 0 2px 4px rgba(255,255,255,.5);} 
+    .hole.show{opacity:1;transform:scale(1);}
+
+    .board.shake{animation:shake .3s linear;}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(5px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
+
+    .bottom-area{padding-bottom:8px;}
+    .npc-row{display:flex;align-items:flex-end;gap:12px;margin-top:8px;}
+    .avatar{
+      width:58px;height:58px;border-radius:50%;background:linear-gradient(145deg,#ffd27b,#ffb130);display:flex;align-items:center;justify-content:center;
+      box-shadow:0 10px 18px rgba(255,177,48,.25);border:3px solid rgba(255,255,255,.88);font-size:28px;
+    }
+    .bubble{flex:1;padding:14px 16px;border-radius:22px 22px 22px 10px;font-size:14px;font-weight:800;line-height:1.5;color:#23323b;min-height:62px;display:flex;align-items:center;}
+
+    .tool-row{display:flex;justify-content:center;gap:12px;margin-top:14px;}
+    .tool-btn{width:84px;height:84px;border-radius:22px;padding:0;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#334048;position:relative;background:rgba(255,255,255,.52);border:1px solid rgba(255,255,255,.82);box-shadow:var(--shadow);} 
+    .tool-icon{font-size:28px;line-height:1}
+    .plus-badge{position:absolute;top:-6px;right:-2px;padding:2px 7px;border-radius:999px;background:linear-gradient(90deg,#44d4ac,#5fe0c9);color:#fff;font-size:13px;font-weight:900;border:2px solid rgba(255,255,255,.9);box-shadow:0 4px 10px rgba(44,200,150,.2)}
+
+    .result-wrap{flex:1;display:flex;align-items:center;justify-content:center;}
+    .result-card{width:100%;padding:24px 22px 22px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;}
+    .medal{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.78);display:flex;align-items:center;justify-content:center;position:absolute;top:-34px;border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 20px rgba(255,193,64,.18);font-size:36px}
+    .result-title{font-size:28px;margin-top:26px;margin-bottom:8px;}
+    .result-sub{font-size:16px;font-weight:900;margin-bottom:22px;color:#25343d;}
+    .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;margin-bottom:16px;}
+    .mini-card{padding:16px 12px;border-radius:22px;min-height:112px;display:flex;flex-direction:column;justify-content:center;align-items:center;}
+    .mini-card .label{font-size:14px;font-weight:800;color:#34414a;margin-bottom:8px;}
+    .mini-card .num{font-size:52px;font-weight:900;line-height:1;color:#21cda0}
+    .mini-card .num.blue{color:#5aa2ff}
+    .risk-box{width:100%;padding:18px 14px;border-radius:24px;margin-bottom:18px;}
+    .risk-title{font-size:14px;font-weight:900;margin-bottom:14px;}
+    .risk-dots{display:flex;justify-content:center;gap:10px;margin-bottom:10px;}
+    .risk-dot{width:22px;height:22px;border-radius:50%;background:rgba(224,232,235,.8);border:1px solid rgba(179,193,198,.8);}
+    .risk-dot.on{background:linear-gradient(145deg,#ff9ab4,#ff668f);border-color:#ff6d91;box-shadow:0 0 0 3px rgba(255,146,172,.12) inset;}
+    .risk-txt{font-size:18px;font-weight:900;color:#ff5b82}
+
+    .footer-btns{display:flex;gap:12px;width:100%;}
+    .footer-btns .btn{flex:1;}
+
+    .toast{position:absolute;left:50%;bottom:138px;transform:translateX(-50%) translateY(10px);background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.95);box-shadow:var(--shadow);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:900;color:#20a67d;opacity:0;pointer-events:none;transition:.28s ease;white-space:nowrap;max-width:88%;text-align:center;z-index:50;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .toast.bad{color:#ff587f;}
+
+    .paused-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(203,233,234,.72);backdrop-filter:blur(8px);z-index:100;}
+    .paused-overlay.show{display:flex;}
+    .pause-card{width:78%;padding:24px;text-align:center;display:flex;flex-direction:column;gap:14px;}
+    .hidden{display:none !important;}
+
+    @media (max-width:380px){
+      .start-title{font-size:29px;}
+      .level-tag{font-size:17px;}
+      .top-bars{grid-template-columns:1fr 1fr 98px;gap:10px;}
+      .plate-box{padding:10px 10px;}
+      .status-dot{width:20px;height:20px}
+      .board{width:min(84vw,290px);height:min(84vw,290px)}
+      .tool-btn{width:78px;height:80px;}
+      .result-title{font-size:26px;}
+      .mini-card .num{font-size:46px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="bg-bubble"></div>
+    <div class="bg-bubble2"></div>
+    <div class="bg-bubble3"></div>
+    <img class="corner-cat" src="./assets/images/second_cat.gif" alt="" aria-hidden="true">
+
+    <!-- Start Screen -->
+    <section class="screen active" id="screen-start">
+      <div class="start-wrap">
+        <div class="start-card glass card">
+          <div class="cute-pill">🐾 LEVEL 02 🐾</div>
+          <h1 class="cat-title start-title">
+            <span class="ears">◜◝</span>
+            别笑，<br>你也过不了第二关
+            <span class="pawdot">🐾</span>
+          </h1>
+          <div class="sub-cat"><span class="graypaw">🐾</span>专治各种拧巴<span class="graypaw">🐾</span></div>
+          <div class="sample-screws">
+            <div class="screw-sample pink"></div>
+            <div class="screw-sample green"></div>
+            <div class="screw-sample blue"></div>
+          </div>
+          <button class="btn" id="btn-start">▶ 拆解开始</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Game Screen -->
+    <section class="screen" id="screen-game">
+      <div class="header">
+        <button class="icon-btn glass" id="btn-pause">Ⅱ</button>
+        <div class="cute-pill level-tag">🐾 第 2 关 🐾</div>
+        <button class="icon-btn glass" id="btn-restart">↻</button>
+      </div>
+
+      <div class="hud">
+        <div class="top-bars">
+          <div class="plate-box pink-edge">
+            <div class="status-mini pink"></div>
+            <div class="status-dots">
+              <div class="status-dot" id="pink-dot-1"></div>
+              <div class="status-dot" id="pink-dot-2"></div>
+            </div>
+          </div>
+          <div class="plate-box green-edge">
+            <div class="status-mini green"></div>
+            <div class="status-dots">
+              <div class="status-dot" id="green-dot-1"></div>
+              <div class="status-dot" id="green-dot-2"></div>
+            </div>
+          </div>
+          <div class="plate-box gray-edge glass">
+            <div style="font-size:26px;line-height:1">🔒</div>
+            <div style="font-size:14px;">核心锁</div>
+          </div>
+        </div>
+
+        <div class="inventory glass">
+          <div class="status-mini blue"></div>
+          <div class="status-mini yellow"></div>
+          <div class="slot-row" id="slot-row"></div>
+        </div>
+
+        <div class="hint-strip glass" id="hint-top">🐾 点击果冻钉拆解，别硬拧被压住的那颗</div>
+      </div>
+
+      <div class="board-wrap">
+        <div class="board" id="board">
+          <div class="acrylic plate-base" id="plate-base"></div>
+          <div class="acrylic plate-purple" id="plate-purple"></div>
+          <div class="acrylic plate-green" id="plate-green"></div>
+          <div class="acrylic plate-pink" id="plate-pink">
+            <div class="toe t1"></div>
+            <div class="toe t2"></div>
+            <div class="toe t3"></div>
+            <div class="toe t4"></div>
+            <div class="pad"></div>
+          </div>
+
+          <div class="hole" id="hole-s1" style="left:69px; top:66px"></div>
+          <div class="hole" id="hole-s2" style="left:166px; top:48px"></div>
+          <div class="hole" id="hole-s3" style="left:205px; top:155px"></div>
+          <div class="hole" id="hole-s4" style="left:179px; top:204px"></div>
+          <div class="hole" id="hole-s5" style="left:130px; top:212px"></div>
+          <div class="hole" id="hole-s6" style="left:253px; top:172px"></div>
+
+          <button class="screw pink" data-id="s1" style="left:56px; top:52px"></button>
+          <button class="screw pink" data-id="s2" style="left:153px; top:36px"></button>
+          <button class="screw green" data-id="s3" style="left:192px; top:142px"></button>
+          <button class="screw green" data-id="s4" style="left:166px; top:190px"></button>
+          <button class="screw blue" data-id="s5" style="left:117px; top:198px"></button>
+          <button class="screw purple" data-id="s6" style="left:240px; top:159px"></button>
+        </div>
+      </div>
+
+      <div class="bottom-area">
+        <div class="npc-row">
+          <div class="avatar">🐱</div>
+          <div class="bubble glass" id="bubble-text">先拆露在外面的果冻钉，猫爪亚克力板松了，后面那颗才轮得到你。</div>
+        </div>
+
+        <div class="tool-row">
+          <button class="tool-btn" id="tool-relax">
+            <span class="plus-badge" id="badge-relax">+1</span>
+            <span class="tool-icon" style="color:#5a9fff">➕</span>
+            <span>加孔位</span>
+          </button>
+          <button class="tool-btn" id="tool-undo">
+            <span class="plus-badge" id="badge-undo">+1</span>
+            <span class="tool-icon" style="color:#f0a000">↺</span>
+            <span>撤回</span>
+          </button>
+          <button class="tool-btn" id="tool-hint">
+            <span class="plus-badge" id="badge-hint">+1</span>
+            <span class="tool-icon" style="color:#ff6f97">✦</span>
+            <span>打乱</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Success -->
+    <section class="screen" id="screen-success">
+      <div class="result-wrap">
+        <div class="result-card glass card">
+          <div class="medal">👑</div>
+          <h2 class="cat-title result-title">螺丝厂传说<span class="pawdot" style="right:-10px;bottom:4px">🐾</span></h2>
+          <div class="result-sub">🐾 这一次，螺丝没拧住你。🐾</div>
+
+          <div class="result-grid">
+            <div class="mini-card glass">
+              <div class="label">通关用时</div>
+              <div class="num" id="success-time">22s</div>
+            </div>
+            <div class="mini-card glass">
+              <div class="label">拆解螺丝</div>
+              <div class="num blue" id="success-count">6个</div>
+            </div>
+          </div>
+
+          <div class="risk-box glass">
+            <div class="risk-title">拧巴危险值</div>
+            <div class="risk-dots" id="risk-dots-success"></div>
+            <div class="risk-txt" id="risk-text-success">危险值 2/5</div>
+          </div>
+
+          <div class="footer-btns">
+            <button class="btn secondary" id="btn-success-replay">再玩一次</button>
+            <button class="btn" id="btn-success-next">进入下一关</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fail -->
+    <section class="screen" id="screen-fail">
+      <div class="result-wrap">
+        <div class="result-card glass card">
+          <div class="medal">💔</div>
+          <h2 class="cat-title result-title" id="fail-title">无力维持人形</h2>
+          <div class="result-sub" id="fail-sub">🐾 别笑，你也没过第二关。🐾</div>
+
+          <div class="risk-box glass" style="margin-top:8px;">
+            <div class="risk-title" id="fail-reason">拧巴值爆表 (100/100)</div>
+            <div style="font-size:15px;font-weight:900;color:#41545d;line-height:1.6;">“你不是在拆螺丝，你是在拆自己的耐心。”</div>
+          </div>
+
+          <div class="result-grid" style="margin-top:2px;">
+            <div class="mini-card glass">
+              <div class="label">剩余时间</div>
+              <div class="num" id="fail-time">0s</div>
+            </div>
+            <div class="mini-card glass">
+              <div class="label">拆解数量</div>
+              <div class="num blue" id="fail-count">3个</div>
+            </div>
+          </div>
+
+          <div class="footer-btns">
+            <button class="btn secondary" id="btn-fail-home">返回开头</button>
+            <button class="btn danger" id="btn-fail-retry">再试一次</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="paused-overlay" id="paused-overlay">
+      <div class="pause-card glass card">
+        <div class="cat-title" style="font-size:26px;">暂停中 🐾</div>
+        <div style="font-weight:800;color:#334048;line-height:1.6">先别硬拧，休息一下也算网感。</div>
+        <button class="btn" id="btn-resume">继续拆</button>
+        <button class="btn secondary" id="btn-pause-restart">重新开始</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const screens = {
+        start: document.getElementById('screen-start'),
+        game: document.getElementById('screen-game'),
+        success: document.getElementById('screen-success'),
+        fail: document.getElementById('screen-fail')
+      };
+      const board = document.getElementById('board');
+      const toast = document.getElementById('toast');
+      const pausedOverlay = document.getElementById('paused-overlay');
+
+      const ui = {
+        hintTop: document.getElementById('hint-top'),
+        bubble: document.getElementById('bubble-text'),
+        slotRow: document.getElementById('slot-row'),
+        pinkDots: [document.getElementById('pink-dot-1'), document.getElementById('pink-dot-2')],
+        greenDots: [document.getElementById('green-dot-1'), document.getElementById('green-dot-2')],
+        platePink: document.getElementById('plate-pink'),
+        plateGreen: document.getElementById('plate-green'),
+        platePurple: document.getElementById('plate-purple'),
+        successTime: document.getElementById('success-time'),
+        successCount: document.getElementById('success-count'),
+        riskDotsSuccess: document.getElementById('risk-dots-success'),
+        riskTextSuccess: document.getElementById('risk-text-success'),
+        failTitle: document.getElementById('fail-title'),
+        failSub: document.getElementById('fail-sub'),
+        failReason: document.getElementById('fail-reason'),
+        failTime: document.getElementById('fail-time'),
+        failCount: document.getElementById('fail-count'),
+        toolRelax: document.getElementById('tool-relax'),
+        toolUndo: document.getElementById('tool-undo'),
+        toolHint: document.getElementById('tool-hint'),
+        badgeRelax: document.getElementById('badge-relax'),
+        badgeUndo: document.getElementById('badge-undo'),
+        badgeHint: document.getElementById('badge-hint')
+      };
+
+      const screwEls = [...document.querySelectorAll('.screw')];
+      const screwMap = {};
+      screwEls.forEach(el => screwMap[el.dataset.id] = el);
+
+      const holes = {
+        s1: document.getElementById('hole-s1'),
+        s2: document.getElementById('hole-s2'),
+        s3: document.getElementById('hole-s3'),
+        s4: document.getElementById('hole-s4'),
+        s5: document.getElementById('hole-s5'),
+        s6: document.getElementById('hole-s6')
+      };
+
+      const baseConfig = {
+        screws: {
+          s1: { id:'s1', color:'pink', plate:'pink', blockedBy:[] },
+          s2: { id:'s2', color:'pink', plate:'pink', blockedBy:[] },
+          s3: { id:'s3', color:'green', plate:'green', blockedBy:[] },
+          s4: { id:'s4', color:'green', plate:'green', blockedBy:[] },
+          s5: { id:'s5', color:'blue', plate:'purple', blockedBy:['pink','green'] },
+          s6: { id:'s6', color:'purple', plate:'core', blockedBy:['purple'] }
+        },
+        plates: {
+          pink: { screws:['s1','s2'], removed:false },
+          green: { screws:['s3','s4'], removed:false },
+          purple: { screws:['s5'], removed:false }
+        }
+      };
+
+      let state = {};
+      let timer = null;
+      let history = [];
+      let finished = false;
+      let latestCompletionResult = null;
+      const flowParams = new URLSearchParams(window.location.search);
+      const isEmbeddedFlow = flowParams.get('embedded') === '1';
+
+      function notifyParentLevelComplete(payload){
+        if(!isEmbeddedFlow || window.parent === window) return;
+        window.parent.postMessage({
+          type: 'hackathon-level-complete',
+          level: 'second',
+          payload
+        }, '*');
+      }
+
+      function cloneConfig(){
+        return JSON.parse(JSON.stringify(baseConfig));
+      }
+
+      function showScreen(name){
+        Object.values(screens).forEach(s => s.classList.remove('active'));
+        screens[name].classList.add('active');
+      }
+
+      function initSlots(){
+        ui.slotRow.innerHTML = '';
+        for(let i=0;i<6;i++){
+          const slot = document.createElement('div');
+          slot.className = 'slot-dot';
+          slot.dataset.index = i;
+          ui.slotRow.appendChild(slot);
+        }
+      }
+
+      function resetVisuals(){
+        ui.platePink.classList.remove('plate-hidden-pink');
+        ui.plateGreen.classList.remove('plate-hidden-green');
+        ui.platePurple.classList.remove('plate-hidden-purple');
+        Object.values(holes).forEach(h => h.classList.remove('show'));
+        screwEls.forEach(el => {
+          el.classList.remove('removed','covered','exposed');
+          el.style.pointerEvents = 'auto';
+        });
+      }
+
+      function newGame(){
+        clearInterval(timer);
+        finished = false;
+        state = {
+          config: cloneConfig(),
+          timeLeft: 30,
+          awkward: 0,
+          awkwardMax: 100,
+          removedCount: 0,
+          wrongClicks: 0,
+          plateUnlocks: 0,
+          toolUses: { relax:1, undo:1, hint:1 },
+          removedOrder: [],
+          reason: ''
+        };
+        history = [];
+        pausedOverlay.classList.remove('show');
+        resetVisuals();
+        initSlots();
+        saveHistory();
+        updateExposure();
+        updateHUD();
+        setHint('先拆露在外面的果冻钉，猫爪亚克力板松了，后面那颗才轮得到你。');
+        showScreen('game');
+        startTimer();
+      }
+
+      function saveHistory(){
+        history.push({
+          removed: [...state.removedOrder],
+          plates: JSON.parse(JSON.stringify(state.config.plates)),
+          awkward: state.awkward,
+          removedCount: state.removedCount,
+          plateUnlocks: state.plateUnlocks
+        });
+        if(history.length > 20) history.shift();
+      }
+
+      function restoreHistory(snapshot){
+        state.config = cloneConfig();
+        state.awkward = snapshot.awkward;
+        state.removedOrder = [...snapshot.removed];
+        state.removedCount = snapshot.removedCount;
+        state.plateUnlocks = snapshot.plateUnlocks;
+        resetVisuals();
+
+        // rebuild removed screws
+        state.removedOrder.forEach(id => {
+          screwMap[id].classList.add('removed');
+          holes[id].classList.add('show');
+        });
+
+        // restore removed plates state
+        state.config.plates = JSON.parse(JSON.stringify(snapshot.plates));
+        if(state.config.plates.pink.removed) ui.platePink.classList.add('plate-hidden-pink');
+        if(state.config.plates.green.removed) ui.plateGreen.classList.add('plate-hidden-green');
+        if(state.config.plates.purple.removed) ui.platePurple.classList.add('plate-hidden-purple');
+
+        updateExposure();
+        updateHUD();
+      }
+
+      function startTimer(){
+        clearInterval(timer);
+        timer = setInterval(() => {
+          if(pausedOverlay.classList.contains('show')) return;
+          state.timeLeft -= 1;
+          updateHUD();
+          if(state.timeLeft <= 0) finishGame(false, 'time');
+        }, 1000);
+      }
+
+      function updateExposure(){
+        Object.keys(state.config.screws).forEach(id => {
+          if(state.removedOrder.includes(id)) return;
+          const screw = state.config.screws[id];
+          const el = screwMap[id];
+          const blocked = screw.blockedBy.some(p => !state.config.plates[p].removed);
+          el.classList.toggle('covered', blocked);
+          el.classList.toggle('exposed', !blocked);
+        });
+      }
+
+      function updateHUD(){
+        // top plate dots
+        const pinkCount = ['s1','s2'].filter(id => state.removedOrder.includes(id)).length;
+        const greenCount = ['s3','s4'].filter(id => state.removedOrder.includes(id)).length;
+        ui.pinkDots.forEach((dot, i) => dot.className = 'status-dot' + (i < pinkCount ? ' done pink':'') );
+        ui.greenDots.forEach((dot, i) => dot.className = 'status-dot' + (i < greenCount ? ' done green':'') );
+
+        // slots inventory
+        const slots = [...ui.slotRow.children];
+        slots.forEach((slot, i) => {
+          slot.className = 'slot-dot';
+          if(state.removedOrder[i]){
+            slot.classList.add('filled', state.config.screws[state.removedOrder[i]].color);
+          }
+        });
+
+        const riskLevel = Math.min(5, Math.max(0, Math.ceil(state.awkward / 20)));
+        ui.hintTop.textContent = `🐾 ${state.timeLeft}s ｜ 已拆 ${state.removedCount}/6 ｜ 拧巴值 ${state.awkward}/100`;
+        ui.badgeRelax.style.display = state.toolUses.relax > 0 ? 'inline-flex':'none';
+        ui.badgeUndo.style.display = state.toolUses.undo > 0 ? 'inline-flex':'none';
+        ui.badgeHint.style.display = state.toolUses.hint > 0 ? 'inline-flex':'none';
+        ui.toolRelax.disabled = state.toolUses.relax <= 0 || finished;
+        ui.toolUndo.disabled = state.toolUses.undo <= 0 || finished || history.length < 2;
+        ui.toolHint.disabled = state.toolUses.hint <= 0 || finished;
+      }
+
+      function buildLevelResult(success, reason){
+        return {
+          level: 'anti_twist_screw',
+          success,
+          reason,
+          levelScore: Math.max(0, Math.min(100, state.removedCount * 14 + state.timeLeft * 2 - state.wrongClicks * 6)),
+          title: success ? '螺丝厂传说' : (reason === 'awkward' ? '无力维持人形' : '慢热型拧巴人'),
+          removedCount: state.removedCount,
+          targetCount: 6,
+          plateUnlocks: state.plateUnlocks,
+          wrongClicks: state.wrongClicks,
+          awkwardness: state.awkward,
+          timeLeft: state.timeLeft
+        };
+      }
+
+      function setHint(msg){
+        ui.bubble.textContent = msg;
+      }
+
+      function showToast(msg, type='good'){
+        toast.textContent = msg;
+        toast.className = 'toast show' + (type==='bad' ? ' bad':'');
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => toast.className = 'toast', 1500);
+      }
+
+      function applyPenalty(amount, msg){
+        state.awkward = Math.min(state.awkwardMax, state.awkward + amount);
+        state.wrongClicks += 1;
+        board.classList.remove('shake');
+        void board.offsetWidth;
+        board.classList.add('shake');
+        updateHUD();
+        setHint(msg);
+        showToast(`拧巴值 +${amount}`, 'bad');
+        if(state.awkward >= state.awkwardMax){
+          finishGame(false, 'awkward');
+        }
+      }
+
+      function removeScrew(id){
+        if(finished) return;
+        const el = screwMap[id];
+        const screw = state.config.screws[id];
+        const blocked = screw.blockedBy.some(p => !state.config.plates[p].removed);
+        if(blocked){
+          const penaltyMsg = id === 's6'
+            ? '核心锁还没解开呢，你现在拧它，只会把自己拧急。'
+            : '这颗还被亚克力板压着，先拆外面的，别上来就碰核心。';
+          applyPenalty(16, penaltyMsg);
+          return;
+        }
+        if(state.removedOrder.includes(id)) return;
+
+        el.classList.add('removed');
+        holes[id].classList.add('show');
+        state.removedOrder.push(id);
+        state.removedCount += 1;
+        showToast('拆开啦，手感不错～');
+
+        let tip = '对，先拆能动的地方。';
+        if(id === 's1' || id === 's2') tip = '粉色猫爪板在松动，继续拆同色那颗。';
+        if(id === 's3' || id === 's4') tip = '绿色果冻板也快松了，别急着碰下面。';
+        if(id === 's5') tip = '紫色外挡板解除了，最后那颗核心钉出来了。';
+        if(id === 's6') tip = '最后一颗也拆掉了，这次是你拿捏螺丝。';
+        setHint(tip);
+
+        checkPlateUnlocks();
+        updateExposure();
+        updateHUD();
+        saveHistory();
+
+        if(id === 's6'){
+          setTimeout(() => finishGame(true, 'success'), 360);
+        }
+      }
+
+      function checkPlateUnlocks(){
+        const plates = state.config.plates;
+
+        if(!plates.pink.removed && plates.pink.screws.every(id => state.removedOrder.includes(id))){
+          plates.pink.removed = true;
+          ui.platePink.classList.add('plate-hidden-pink');
+          state.plateUnlocks += 1;
+          setHint('粉色猫爪亚克力板滑开了，下面的结构露出来了。');
+          showToast('粉色猫爪板解锁');
+        }
+
+        if(!plates.green.removed && plates.green.screws.every(id => state.removedOrder.includes(id))){
+          plates.green.removed = true;
+          ui.plateGreen.classList.add('plate-hidden-green');
+          state.plateUnlocks += 1;
+          setHint('绿色果冻板也松了，先别飘，还有一层。');
+          showToast('绿色果冻板解锁');
+        }
+
+        if(!plates.purple.removed && plates.purple.screws.every(id => state.removedOrder.includes(id))){
+          plates.purple.removed = true;
+          ui.platePurple.classList.add('plate-hidden-purple');
+          state.plateUnlocks += 1;
+          setHint('最后一层挡板打开，核心钉已经暴露，快拆它！');
+          showToast('核心锁已解开');
+        }
+      }
+
+      function finishGame(success, reason){
+        if(finished) return;
+        finished = true;
+        clearInterval(timer);
+        state.reason = reason;
+        latestCompletionResult = buildLevelResult(success, reason);
+
+        if(success){
+          const used = 30 - state.timeLeft;
+          ui.successTime.textContent = `${used}s`;
+          ui.successCount.textContent = `${state.removedCount}个`;
+          const risk = Math.max(1, Math.min(5, Math.ceil(state.awkward / 20)));
+          ui.riskDotsSuccess.innerHTML = '';
+          for(let i=0;i<5;i++){
+            const d = document.createElement('div');
+            d.className = 'risk-dot' + (i < risk ? ' on':'');
+            ui.riskDotsSuccess.appendChild(d);
+          }
+          ui.riskTextSuccess.textContent = `危险值 ${risk}/5`;
+          showScreen('success');
+        } else {
+          let title = '第二关受害者';
+          let sub = '🐾 别笑，你也没过第二关。🐾';
+          let reasonText = '螺丝没拆完，精神先拧上了。';
+          if(reason === 'awkward'){
+            title = '无力维持人形';
+            reasonText = `拧巴值爆表 (${state.awkward}/${state.awkwardMax})`;
+          } else if(reason === 'time'){
+            title = '慢热型拧巴人';
+            reasonText = '时间见底了，你还在和最后一层谈感情。';
+          }
+          ui.failTitle.textContent = title;
+          ui.failSub.textContent = sub;
+          ui.failReason.textContent = reasonText;
+          ui.failTime.textContent = `${Math.max(0,state.timeLeft)}s`;
+          ui.failCount.textContent = `${state.removedCount}个`;
+          showScreen('fail');
+        }
+      }
+
+      function useRelax(){
+        if(state.toolUses.relax <= 0 || finished) return;
+        state.toolUses.relax -= 1;
+        state.awkward = Math.max(0, state.awkward - 18);
+        updateHUD();
+        setHint('你给自己多开了一个缓冲孔位，先别急，慢慢拆。');
+        showToast('拧巴值 -18');
+      }
+
+      function useUndo(){
+        if(state.toolUses.undo <= 0 || finished || history.length < 2) return;
+        state.toolUses.undo -= 1;
+        history.pop();
+        const snapshot = history[history.length - 1];
+        if(snapshot) restoreHistory(snapshot);
+        setHint('撤回成功，刚才那步不算，重新组织一下你的手。');
+        showToast('已撤回一步');
+      }
+
+      function useHint(){
+        if(state.toolUses.hint <= 0 || finished) return;
+        state.toolUses.hint -= 1;
+        updateHUD();
+        const candidates = Object.keys(state.config.screws).filter(id => {
+          if(state.removedOrder.includes(id)) return false;
+          return !state.config.screws[id].blockedBy.some(p => !state.config.plates[p].removed);
+        });
+        screwEls.forEach(el => el.style.transform = '');
+        candidates.forEach((id, index) => {
+          const el = screwMap[id];
+          el.animate([
+            {transform:'scale(1)'},
+            {transform:'scale(1.16)'},
+            {transform:'scale(1)'}
+          ], {duration: 760, iterations: 2, delay: index * 80});
+        });
+        setHint(candidates.length ? '我帮你把当前能拆的果冻钉都闪了一下，盯着亮的那几颗。' : '现在没有额外线索了，继续拆就对了。');
+        showToast('已高亮当前可拆钉');
+      }
+
+      // Events
+      document.getElementById('btn-start').addEventListener('click', newGame);
+      document.getElementById('btn-restart').addEventListener('click', newGame);
+      document.getElementById('btn-success-replay').addEventListener('click', newGame);
+      document.getElementById('btn-fail-retry').addEventListener('click', newGame);
+      document.getElementById('btn-fail-home').addEventListener('click', () => showScreen('start'));
+      document.getElementById('btn-success-next').addEventListener('click', () => {
+        if(isEmbeddedFlow && latestCompletionResult && latestCompletionResult.success){
+          notifyParentLevelComplete(latestCompletionResult);
+          return;
+        }
+        showToast('这里先留接口：下一关可在主流程里接入');
+        showScreen('start');
+      });
+
+      document.getElementById('btn-pause').addEventListener('click', () => pausedOverlay.classList.add('show'));
+      document.getElementById('btn-resume').addEventListener('click', () => pausedOverlay.classList.remove('show'));
+      document.getElementById('btn-pause-restart').addEventListener('click', newGame);
+
+      ui.toolRelax.addEventListener('click', useRelax);
+      ui.toolUndo.addEventListener('click', useUndo);
+      ui.toolHint.addEventListener('click', useHint);
+
+      screwEls.forEach(el => {
+        el.addEventListener('click', () => removeScrew(el.dataset.id));
+      });
+
+      // expose for integration
+      window.renderScrewLevel = function(onComplete){
+        newGame();
+        const originalFinish = finishGame;
+        finishGame = function(success, reason){
+          originalFinish(success, reason);
+          const result = buildLevelResult(success, reason);
+          if(typeof onComplete === 'function') onComplete(result);
+        };
+      };
+
+      // default start screen
+      showScreen('start');
+    })();
+  </script>
+</body>
+</html>

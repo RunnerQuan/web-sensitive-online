@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>误入网感 Online · 第三关</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --ivory: #fcfafa;
+      --gold-300: #fde047;
+      --gold-400: #eab308;
+      --gold-500: #d97706;
+      --gold-700: #a16207;
+      --rose: #ec4899;
+      --blue: #60a5fa;
+      --mint: #10b981;
+      --text-900: #1f2937;
+      --text-700: #374151;
+      --text-500: #6b7280;
+      --text-400: #9ca3af;
+      --card-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+      --soft-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+      --panel-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+      --gold-glow: 0 8px 20px rgba(250, 204, 21, 0.28);
+      --font-body: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+      --font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", serif;
+      --font-script: "STKaiti", "KaiTi", "Kaiti SC", "FangSong", serif;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      background: #f1f5f9;
+    }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--text-900);
+      touch-action: manipulation;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100dvh;
+      padding: 8px 0;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .game-shell {
+      width: min(100vw, 395px, calc((100dvh - 16px) * 375 / 812));
+      height: min(calc(100dvh - 16px), 812px, calc(100vw * 812 / 375));
+      padding: 0 10px;
+      display: flex;
+      align-items: stretch;
+      flex: 0 0 auto;
+    }
+
+    .game-root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      background: var(--ivory);
+      border-radius: 40px;
+      overflow: hidden;
+      border: 6px solid #fff;
+      box-shadow: var(--card-shadow);
+      isolation: isolate;
+    }
+
+    .ui-layer,
+    .toast-layer {
+      position: absolute;
+      inset: 0;
+    }
+
+    .ui-layer {
+      z-index: 2;
+      overflow: hidden;
+      scrollbar-width: none;
+    }
+
+    .ui-layer::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
+
+    .toast-layer {
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .corner-cat {
+      position: absolute;
+      right: -6px;
+      bottom: 20px;
+      width: 126px;
+      max-width: 34vw;
+      opacity: 0.9;
+      pointer-events: none;
+      filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.18));
+      z-index: 1;
+      transform: rotate(4deg);
+    }
+
+    .screen {
+      position: relative;
+      height: 100%;
+      min-height: 0;
+      width: 100%;
+      overflow: hidden;
+      animation: fade-in 0.28s ease;
+    }
+
+    .bg-image,
+    .bg-overlay,
+    .bg-wash {
+      position: absolute;
+      inset: 0;
+    }
+
+    .bg-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .intro-screen .bg-image {
+      opacity: 0.62;
+    }
+
+    .scene-screen .bg-image {
+      opacity: 0.58;
+    }
+
+    .feedback-screen .bg-image {
+      opacity: 0.3;
+      filter: blur(5px);
+      transform: scale(1.03);
+    }
+
+    .bg-overlay {
+      background: linear-gradient(to top, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.08));
+    }
+
+    .feedback-screen .bg-overlay {
+      background: rgba(255, 255, 255, 0.62);
+      backdrop-filter: blur(14px);
+    }
+
+    .result-screen .bg-wash {
+      background: radial-gradient(ellipse at top, #fef3c7 0%, #ffffff 45%, #f8fafc 100%);
+    }
+
+    .stage {
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      min-height: 100%;
+    }
+
+    .intro-screen .stage {
+      padding: calc(24px + var(--safe-top)) 24px calc(28px + var(--safe-bottom));
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      text-align: center;
+      background: linear-gradient(to top, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
+    }
+
+    .scene-screen .stage {
+      padding: calc(18px + var(--safe-top)) 20px calc(16px + var(--safe-bottom));
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .feedback-screen .stage {
+      padding: calc(24px + var(--safe-top)) 22px calc(24px + var(--safe-bottom));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-screen .stage {
+      padding: calc(36px + var(--safe-top)) 24px calc(22px + var(--safe-bottom));
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    .particle {
+      position: absolute;
+      border-radius: 999px;
+      animation: float 6s infinite ease-in-out;
+    }
+
+    .particle.p1 {
+      top: 25%;
+      left: 24%;
+      width: 8px;
+      height: 8px;
+      background: rgba(253, 224, 71, 0.8);
+      filter: blur(2px);
+    }
+
+    .particle.p2 {
+      top: 33%;
+      right: 25%;
+      width: 12px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      filter: blur(3px);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.95);
+      animation-delay: 2s;
+      animation-duration: 8s;
+    }
+
+    .particle.p3 {
+      top: 12%;
+      left: 10%;
+      width: 6px;
+      height: 6px;
+      background: rgba(253, 230, 138, 0.9);
+      filter: blur(1px);
+      animation-delay: 4s;
+      animation-duration: 7s;
+    }
+
+    .glow-orb {
+      position: absolute;
+      top: -18px;
+      right: -44px;
+      width: 256px;
+      height: 256px;
+      border-radius: 50%;
+      background: rgba(254, 240, 138, 0.48);
+      filter: blur(60px);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      font-size: 12px;
+      letter-spacing: 0.3em;
+      color: rgba(161, 98, 7, 0.72);
+      font-family: var(--font-display);
+      font-weight: 600;
+    }
+
+    .intro-title {
+      margin: 0 0 16px;
+      font-size: 48px;
+      line-height: 1.04;
+      letter-spacing: 0.08em;
+      font-weight: 900;
+      font-family: var(--font-display);
+      color: transparent;
+      background: linear-gradient(to bottom, #f59e0b, #d97706, #b45309);
+      -webkit-background-clip: text;
+      background-clip: text;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .intro-line {
+      height: 1px;
+      width: 48px;
+      background: rgba(234, 179, 8, 0.5);
+      margin: 16px auto;
+    }
+
+    .intro-subtitle {
+      margin: 0;
+      color: rgba(75, 85, 99, 0.86);
+      font-size: 16px;
+      letter-spacing: 0.12em;
+      font-family: var(--font-display);
+      font-weight: 600;
+    }
+
+    .intro-copy-card,
+    .line-bubble,
+    .option-button,
+    .feedback-card,
+    .result-core {
+      backdrop-filter: blur(12px);
+    }
+
+    .intro-copy-card {
+      margin-top: 48px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(255, 255, 255, 0.96);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .copy-text {
+      margin: 0 0 16px;
+      font-size: 15px;
+      line-height: 1.8;
+      color: rgba(31, 41, 55, 0.82);
+    }
+
+    .copy-text:last-child {
+      margin-bottom: 0;
+    }
+
+    .system-note {
+      background: rgba(254, 249, 195, 0.72);
+      border-left: 2px solid var(--gold-400);
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .system-label {
+      margin: 0 0 4px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #a16207;
+      font-family: var(--font-display);
+    }
+
+    .system-copy {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(75, 85, 99, 0.92);
+    }
+
+    .primary-button,
+    .secondary-button {
+      appearance: none;
+      border: none;
+      width: 100%;
+      min-height: 52px;
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease, opacity 0.16s ease;
+    }
+
+    .primary-button:active,
+    .secondary-button:active,
+    .option-button:active {
+      transform: scale(0.97);
+    }
+
+    .primary-button {
+      margin-top: 32px;
+      padding: 14px 18px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #fde68a, #facc15, #fde68a);
+      color: #78350f;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      font-family: var(--font-display);
+      border: 1px solid rgba(254, 249, 195, 0.95);
+      box-shadow: var(--gold-glow);
+    }
+
+    .scene-top {
+      position: relative;
+      z-index: 2;
+      padding-top: 4px;
+      flex: 0 0 auto;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0));
+    }
+
+    .top-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .scene-chip {
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: #a16207;
+      font-family: var(--font-display);
+      font-weight: 700;
+      background: rgba(254, 243, 199, 0.92);
+      border: 1px solid rgba(253, 230, 138, 1);
+      padding: 6px 10px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .timer-rail {
+      flex: 1;
+      height: 6px;
+      background: rgba(229, 231, 235, 0.95);
+      border-radius: 999px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(to right, #fde68a, #eab308);
+      box-shadow: 0 0 10px rgba(234, 179, 8, 0.46);
+      transition: width 0.16s linear;
+    }
+
+    .timer-text {
+      min-width: 34px;
+      text-align: right;
+      font-size: 12px;
+      color: rgba(55, 65, 81, 0.9);
+      font-weight: 700;
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    .timer-text.low {
+      color: #be123c;
+      animation: pulse 0.7s ease infinite alternate;
+    }
+
+    .bullet-layer {
+      position: absolute;
+      top: 22%;
+      left: 0;
+      width: 100%;
+      z-index: 3;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    .bullet {
+      width: fit-content;
+      max-width: 66%;
+      font-size: 11px;
+      line-height: 1.5;
+      color: rgba(75, 85, 99, 0.92);
+      background: rgba(255, 255, 255, 0.58);
+      border-radius: 999px;
+      padding: 5px 9px;
+      backdrop-filter: blur(8px);
+    }
+
+    .bullet:nth-child(1) {
+      transform: translateX(16px);
+    }
+
+    .bullet:nth-child(2) {
+      transform: translateX(64px);
+      background: rgba(255, 255, 255, 0.74);
+      color: rgba(31, 41, 55, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.92);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .bullet:nth-child(3) {
+      transform: translateX(24px);
+    }
+
+    .scene-bottom {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 4px;
+      flex: 0 0 auto;
+    }
+
+    .line-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 0;
+    }
+
+    .line-bubble {
+      width: 85%;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 24px;
+      padding: 12px 14px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+      position: relative;
+    }
+
+    .line-bubble.left {
+      align-self: flex-start;
+      border-top-left-radius: 10px;
+    }
+
+    .line-bubble.right {
+      align-self: flex-end;
+      text-align: right;
+      border-top-right-radius: 10px;
+    }
+
+    .speaker-bar {
+      position: absolute;
+      top: 10px;
+      width: 4px;
+      height: 24px;
+      border-radius: 999px;
+    }
+
+    .line-bubble.left .speaker-bar {
+      left: -1px;
+      background: #60a5fa;
+    }
+
+    .line-bubble.right .speaker-bar {
+      right: -1px;
+      background: #f472b6;
+    }
+
+    .speaker-name {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #2563eb;
+      font-weight: 600;
+      font-family: var(--font-display);
+    }
+
+    .line-bubble.right .speaker-name {
+      color: #db2777;
+    }
+
+    .line-text {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.55;
+      color: rgba(31, 41, 55, 0.94);
+    }
+
+    .question-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: rgba(217, 119, 6, 0.92);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-display);
+    }
+
+    .question-line {
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(253, 224, 71, 0.9));
+    }
+
+    .question-line.reverse {
+      background: linear-gradient(to left, rgba(255, 255, 255, 0), rgba(253, 224, 71, 0.9));
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-button {
+      appearance: none;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border-radius: 16px;
+      min-height: 54px;
+      padding: 12px 16px;
+      text-align: left;
+      color: rgba(31, 41, 55, 0.96);
+      cursor: pointer;
+      transition: transform 0.16s ease, background-color 0.16s ease, opacity 0.16s ease;
+    }
+
+    .option-button:disabled {
+      opacity: 0.68;
+      cursor: default;
+    }
+
+    .option-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .option-letter {
+      color: rgba(217, 119, 6, 0.62);
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 300;
+      font-style: italic;
+      min-width: 18px;
+      padding-top: 2px;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .option-text {
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .feedback-card {
+      width: 85%;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 24px;
+      border: 1px solid rgba(253, 230, 138, 0.92);
+      padding: 24px;
+      text-align: center;
+      position: relative;
+      box-shadow: var(--panel-shadow);
+      animation: feedback-pop 0.25s ease;
+    }
+
+    .feedback-ring {
+      width: 48px;
+      height: 48px;
+      margin: -48px auto 16px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 5px 15px rgba(34, 197, 94, 0.28);
+    }
+
+    .feedback-ring.good {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+    }
+
+    .feedback-ring.timeout {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      box-shadow: 0 5px 15px rgba(245, 158, 11, 0.28);
+    }
+
+    .feedback-ring.risky {
+      background: linear-gradient(135deg, #fb7185, #f43f5e);
+      box-shadow: 0 5px 15px rgba(244, 63, 94, 0.28);
+    }
+
+    .feedback-title {
+      margin: 0 0 10px;
+      color: rgba(217, 119, 6, 0.96);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      font-family: var(--font-display);
+    }
+
+    .feedback-copy {
+      margin: 0;
+      color: rgba(55, 65, 81, 0.9);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .result-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .result-header .eyebrow {
+      margin-bottom: 8px;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: rgba(217, 119, 6, 0.78);
+    }
+
+    .result-rule {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: rgba(55, 65, 81, 0.82);
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      font-family: var(--font-display);
+    }
+
+    .result-rule span {
+      width: 32px;
+      height: 1px;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(251, 191, 36, 0.9));
+    }
+
+    .result-rule span:last-child {
+      background: linear-gradient(to left, rgba(255, 255, 255, 0), rgba(251, 191, 36, 0.9));
+    }
+
+    .result-core {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(253, 230, 138, 0.9);
+      border-radius: 28px;
+      padding: 32px 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    .result-deco {
+      position: absolute;
+      top: -22px;
+      right: -8px;
+      font-size: 80px;
+      color: rgba(254, 249, 195, 0.86);
+      transform: rotate(12deg);
+      pointer-events: none;
+    }
+
+    .result-icon {
+      font-size: 50px;
+      margin-bottom: 12px;
+      color: transparent;
+      background: linear-gradient(to bottom, #fcd34d, #eab308);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.06));
+      animation: title-bloom 0.45s ease;
+    }
+
+    .result-title {
+      margin: 0 0 20px;
+      font-size: 32px;
+      line-height: 1.2;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      font-family: var(--font-display);
+      color: transparent;
+      background: linear-gradient(to right, #ca8a04, #eab308, #a16207);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .result-comment {
+      margin: 0;
+      color: rgba(75, 85, 99, 0.9);
+      font-size: 14px;
+      line-height: 1.9;
+      position: relative;
+      font-family: var(--font-script);
+    }
+
+    .result-comment::before,
+    .result-comment::after {
+      position: absolute;
+      color: rgba(253, 230, 138, 0.92);
+      font-size: 28px;
+      line-height: 1;
+      font-family: Georgia, serif;
+    }
+
+    .result-comment::before {
+      content: '"';
+      left: -10px;
+      top: -8px;
+    }
+
+    .result-comment::after {
+      content: '"';
+      right: -6px;
+      bottom: -16px;
+    }
+
+    .result-bars {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .bar-item-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: rgba(107, 114, 128, 0.96);
+      margin-bottom: 6px;
+    }
+
+    .bar-item-value {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-weight: 700;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(229, 231, 235, 0.95);
+      border-radius: 999px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+    }
+
+    .bar-fill.score {
+      background: linear-gradient(to right, #fde68a, #eab308);
+    }
+
+    .bar-fill.pro {
+      background: linear-gradient(to right, #93c5fd, #3b82f6);
+    }
+
+    .bar-fill.awkward {
+      background: linear-gradient(to right, #f9a8d4, #ec4899);
+    }
+
+    .secondary-button {
+      margin-top: 28px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #fefce8;
+      border: 1px solid #fde68a;
+      color: #a16207;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      font-family: var(--font-display);
+      box-shadow: var(--gold-glow);
+    }
+
+    .error-card {
+      height: 100%;
+      padding: calc(28px + var(--safe-top)) 24px calc(28px + var(--safe-bottom));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .error-inner {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(253, 230, 138, 0.95);
+      border-radius: 28px;
+      padding: 28px 24px;
+      text-align: center;
+      box-shadow: var(--panel-shadow);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0.35;
+      }
+      50% {
+        transform: translateY(-18px) translateX(10px);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(0) translateX(0);
+        opacity: 0.35;
+      }
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      from {
+        transform: scale(1);
+      }
+      to {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes feedback-pop {
+      from {
+        opacity: 0;
+        transform: scale(0.94);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes title-bloom {
+      from {
+        opacity: 0;
+        transform: scale(0.86);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @media (max-width: 390px) {
+      .intro-title {
+        font-size: 44px;
+      }
+
+      .result-title {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="game-shell">
+    <section id="game-root" class="game-root">
+      <img class="corner-cat" src="./assets/images/third_cat.gif" alt="" aria-hidden="true">
+      <section id="ui-layer" class="ui-layer"></section>
+      <section id="toast-layer" class="toast-layer"></section>
+    </section>
+  </main>
+
+  <script>
+    const wangmaScenes = [
+      {
+        id: "coffee",
+        title: "第 1 幕：咖啡文学",
+        setup: "",
+        lines: [
+          { speaker: "少爷", text: "你递来的不是咖啡，是我荒芜人生里唯一的热源。" },
+          { speaker: "夫人", text: "我只是看它快凉了。" }
+        ],
+        bullets: [
+          "他好爱。",
+          "这杯咖啡承担了太多。",
+          "王妈在旁边快碎了。"
+        ],
+        question: "王妈此刻应该：",
+        timeoutOptionIndex: 0,
+        timeoutFeedback: "王妈选择了沉默。豪门保住了，网感没了。",
+        options: [
+          {
+            text: "低头看地毯，假装自己只是家具。",
+            type: "safe",
+            effects: { professionalism: 15, memeSense: -5, awkwardness: 0 },
+            feedback: "你选择了豪门生存法则：低头，沉默，像一盏台灯。"
+          },
+          {
+            text: "内心 OS：这杯咖啡今天算是立大功了。",
+            type: "best",
+            effects: { professionalism: 0, memeSense: 20, awkwardness: -5 },
+            feedback: "你精准识别了本集的抽象核心：咖啡被迫承载爱情。"
+          },
+          {
+            text: "当场补一句：少爷，咖啡豆是我磨的。",
+            type: "risky",
+            effects: { professionalism: -10, memeSense: 0, awkwardness: 20 },
+            feedback: "现场安静了。夫人看你的眼神里多了一丝同情。"
+          }
+        ]
+      },
+      {
+        id: "scarf",
+        title: "第 2 幕：围巾封印",
+        setup: "夫人路过时，顺手把少爷歪到后脑勺的围巾拉正了。",
+        lines: [
+          { speaker: "少爷", text: "你整理的不是围巾，是我这二十七年没人管过的人生。" },
+          { speaker: "夫人", text: "少爷，再歪一点就勒脖子了。" }
+        ],
+        bullets: [
+          "救命，他又开始自我攻略了。",
+          "围巾：我只是歪了。",
+          "王妈：豪门里没有小事，只有过度解读。"
+        ],
+        question: "王妈此刻应该：",
+        timeoutOptionIndex: 0,
+        timeoutFeedback: "王妈选择了沉默。豪门保住了，网感没了。",
+        options: [
+          {
+            text: "默默递上镜子，让少爷自己看看围巾到底歪成什么样。",
+            type: "safe",
+            effects: { professionalism: 15, memeSense: 5, awkwardness: 0 },
+            feedback: "你用职业素养守住了豪门体面，也让围巾回到了服装本职。"
+          },
+          {
+            text: "内心 OS：围巾没歪，恋爱脑歪了。",
+            type: "best",
+            effects: { professionalism: 5, memeSense: 25, awkwardness: -5 },
+            feedback: "精准。你识别出本幕核心：围巾没动心，少爷先动了脑补。"
+          },
+          {
+            text: "当场鼓掌：少爷，您这条围巾终于被爱收编了。",
+            type: "risky",
+            effects: { professionalism: -15, memeSense: 10, awkwardness: 20 },
+            feedback: "客厅安静了。夫人看了你一眼，围巾也想辞职。"
+          }
+        ]
+      },
+      {
+        id: "rain",
+        title: "第 3 幕：雨夜告白",
+        setup: "窗外突然下雨。少爷看着夫人，声音低沉。",
+        lines: [
+          { speaker: "少爷", text: "如果今晚的雨停了，你是不是也会离开我？" },
+          { speaker: "夫人", text: "少爷，窗户没关。" }
+        ],
+        bullets: [
+          "夫人好清醒。",
+          "王妈快去关窗！",
+          "他真的，我哭死。"
+        ],
+        question: "王妈此刻应该：",
+        timeoutOptionIndex: 0,
+        timeoutFeedback: "王妈选择了沉默。豪门保住了，网感没了。",
+        options: [
+          {
+            text: "立刻去关窗，维护豪门基本生活质量。",
+            type: "safe",
+            effects: { professionalism: 20, memeSense: 5, awkwardness: 0 },
+            feedback: "你用行动证明：豪门可以破碎，地板不能泡水。"
+          },
+          {
+            text: "内心 OS：雨停不停不知道，地板快不行了。",
+            type: "best",
+            effects: { professionalism: 5, memeSense: 25, awkwardness: -10 },
+            feedback: "你在深情与现实之间找到了最稳定的吐槽角度。"
+          },
+          {
+            text: "站在原地不动，尊重少爷的情绪氛围。",
+            type: "risky",
+            effects: { professionalism: -10, memeSense: 0, awkwardness: 25 },
+            feedback: "你尊重了氛围，但牺牲了地板。王妈职业生涯出现波动。"
+          }
+        ]
+      }
+    ];
+
+    const initialWangmaState = {
+      level: "wangma",
+      awkwardness: 30,
+      professionalism: 60,
+      memeSense: 0,
+      sceneIndex: 0,
+      choices: [],
+      timedOutCount: 0,
+      levelScore: 0,
+      title: "",
+      comment: "",
+      isResolving: false
+    };
+
+    const wangmaResultComments = {
+      "无力维持人形": "你端着咖啡进来，端着自己的精神碎片离开。",
+      "豪门失业边缘人": "你每一句都很有网感，但王妈这个岗位可能不太适合你。",
+      "豪门清醒王妈": "你全程看透，但全程不说破。真正的体面，是在抽象里保持微笑。",
+      "弹幕派来的王妈": "你不像管家，像评论区派到豪门卧底的观察员。",
+      "传统豪门员工": "你很专业，但还没有完全适应短剧世界的精神湿度。",
+      "短剧副本幸存者": "你成功撑过了这段深情又抽象的豪门现场。王妈身份暂时保住了。"
+    };
+
+    const WANGMA_OPTION_LABELS = ["A", "B", "C"];
+    const WANGMA_OPTION_TYPE_LABELS = {
+      safe: "职业保守型",
+      best: "最佳网感型",
+      risky: "抽象作死型"
+    };
+
+    const INTRO_BG = "./assets/images/wangma-intro-bg.jpg";
+    const SCENE_BG = "./assets/images/wangma-scene-bg.jpg";
+
+    let wangmaState = createInitialWangmaState();
+    let sceneTimer = null;
+    const SCENE_TIME_LIMIT = 20;
+    let timeLeft = SCENE_TIME_LIMIT;
+    let wangmaCompleteHandler = function noop() {};
+    let wangmaCompletionSent = false;
+    const flowParams = new URLSearchParams(window.location.search);
+    const isEmbeddedFlow = flowParams.get("embedded") === "1";
+
+    function notifyParentLevelComplete(payload) {
+      if (!isEmbeddedFlow || window.parent === window) return;
+      window.parent.postMessage({
+        type: "hackathon-level-complete",
+        level: "third",
+        payload
+      }, "*");
+    }
+    let wangmaTimeoutIds = [];
+
+    function createInitialWangmaState() {
+      return JSON.parse(JSON.stringify(initialWangmaState));
+    }
+
+    function clampStat(value) {
+      return Math.max(0, Math.min(100, value));
+    }
+
+    function applyWangmaEffects(state, effects) {
+      state.professionalism = clampStat(state.professionalism + (effects.professionalism || 0));
+      state.memeSense = clampStat(state.memeSense + (effects.memeSense || 0));
+      state.awkwardness = clampStat(state.awkwardness + (effects.awkwardness || 0));
+      return state;
+    }
+
+    function calculateWangmaScore(state) {
+      const rawScore = state.memeSense + state.professionalism - Math.floor(state.awkwardness / 2);
+      return Math.max(0, Math.min(100, rawScore));
+    }
+
+    function getWangmaResultTitle(state) {
+      const { awkwardness, professionalism, memeSense } = state;
+
+      if (awkwardness >= 100) return "无力维持人形";
+      if (professionalism < 35) return "豪门失业边缘人";
+      if (memeSense >= 55 && professionalism >= 60) return "豪门清醒王妈";
+      if (memeSense >= 55 && professionalism < 60) return "弹幕派来的王妈";
+      if (memeSense < 35 && professionalism >= 70) return "传统豪门员工";
+      return "短剧副本幸存者";
+    }
+
+    function getWangmaResult() {
+      const resultTitle = getWangmaResultTitle(wangmaState);
+      const resultComment = wangmaResultComments[resultTitle] || wangmaResultComments["短剧副本幸存者"];
+      const levelScore = calculateWangmaScore(wangmaState);
+
+      wangmaState.levelScore = levelScore;
+      wangmaState.title = resultTitle;
+      wangmaState.comment = resultComment;
+
+      return {
+        level: "wangma",
+        success: true,
+        levelScore: levelScore,
+        title: resultTitle,
+        comment: resultComment,
+        awkwardness: wangmaState.awkwardness,
+        professionalism: wangmaState.professionalism,
+        memeSense: wangmaState.memeSense,
+        choices: wangmaState.choices.slice(),
+        timedOutCount: wangmaState.timedOutCount
+      };
+    }
+
+    function ensureGlobalGameState() {
+      if (!window.gameState || typeof window.gameState !== "object") {
+        window.gameState = {
+          score: 0,
+          memeSense: 0,
+          absurdity: 0,
+          vitality: 0,
+          badges: [],
+          levelResults: {}
+        };
+      }
+
+      const gameState = window.gameState;
+      gameState.badges = Array.isArray(gameState.badges) ? gameState.badges : [];
+      gameState.levelResults = gameState.levelResults && typeof gameState.levelResults === "object"
+        ? gameState.levelResults
+        : {};
+
+      if (typeof gameState.score !== "number") gameState.score = Number(gameState.score) || 0;
+      if (typeof gameState.memeSense !== "number") gameState.memeSense = Number(gameState.memeSense) || 0;
+      if (typeof gameState.absurdity !== "number") gameState.absurdity = Number(gameState.absurdity) || 0;
+      if (typeof gameState.vitality !== "number") gameState.vitality = Number(gameState.vitality) || 0;
+
+      return gameState;
+    }
+
+    function mergeWangmaResultIntoGameState(wangmaResult) {
+      const gameState = ensureGlobalGameState();
+
+      gameState.score += wangmaResult.levelScore;
+      gameState.memeSense += wangmaResult.memeSense;
+      gameState.absurdity += Math.floor(Math.max(0, 100 - wangmaResult.awkwardness) / 2);
+      gameState.vitality += Math.floor(Math.max(0, wangmaResult.professionalism - 30) / 3);
+
+      if (!gameState.badges.includes(wangmaResult.title)) {
+        gameState.badges.push(wangmaResult.title);
+      }
+
+      gameState.levelResults.wangma = wangmaResult;
+
+      if (gameState.scores && typeof gameState.scores === "object") {
+        if (typeof gameState.scores.memeSense === "number") {
+          gameState.scores.memeSense += wangmaResult.memeSense;
+        }
+        if (typeof gameState.scores.abstractValue === "number") {
+          gameState.scores.abstractValue += Math.floor(Math.max(0, 100 - wangmaResult.awkwardness) / 2);
+        }
+        if (typeof gameState.scores.survivalValue === "number") {
+          gameState.scores.survivalValue = clampStat(gameState.scores.survivalValue + Math.floor((wangmaResult.professionalism - 50) / 2));
+        }
+      }
+    }
+
+    function getUiLayer() {
+      return document.getElementById("ui-layer");
+    }
+
+    function getToastLayer() {
+      return document.getElementById("toast-layer");
+    }
+
+    function registerWangmaTimeout(timerId) {
+      wangmaTimeoutIds.push(timerId);
+      return timerId;
+    }
+
+    function clearWangmaTimer() {
+      if (sceneTimer) {
+        clearInterval(sceneTimer);
+        sceneTimer = null;
+      }
+    }
+
+    function clearWangmaTimeouts() {
+      wangmaTimeoutIds.forEach(function clearTimer(timerId) {
+        clearTimeout(timerId);
+      });
+      wangmaTimeoutIds = [];
+    }
+
+    function cleanupWangmaScene() {
+      clearWangmaTimer();
+      clearWangmaTimeouts();
+
+      const toastLayer = getToastLayer();
+      if (toastLayer) {
+        toastLayer.innerHTML = "";
+      }
+    }
+
+    function startSceneTimer() {
+      clearWangmaTimer();
+      timeLeft = SCENE_TIME_LIMIT;
+      updateCountdownUi();
+
+      sceneTimer = setInterval(function tickSceneTimer() {
+        timeLeft -= 1;
+        updateCountdownUi();
+
+        if (timeLeft <= 0) {
+          clearWangmaTimer();
+          handleSceneTimeout();
+        }
+      }, 1000);
+    }
+
+    function updateCountdownUi() {
+      const countdownEl = document.getElementById("wangma-countdown");
+      const progressEl = document.getElementById("wangma-timer-fill");
+
+      if (countdownEl) {
+        countdownEl.textContent = String(timeLeft).padStart(2, "0") + "s";
+        countdownEl.classList.toggle("low", timeLeft <= 3);
+      }
+
+      if (progressEl) {
+        progressEl.style.width = (timeLeft / SCENE_TIME_LIMIT) * 100 + "%";
+      }
+    }
+
+    function handleSceneTimeout() {
+      const scene = wangmaScenes[wangmaState.sceneIndex];
+      const timeoutIndex = scene.timeoutOptionIndex ?? 0;
+      wangmaState.timedOutCount += 1;
+      handleWangmaChoice(timeoutIndex, true);
+    }
+
+    function getFeedbackIcon(type, isTimeout) {
+      if (isTimeout) return { icon: "…", ringClass: "timeout", title: "王妈选择了沉默" };
+      if (type === "best") return { icon: "✓", ringClass: "good", title: "选项 B" };
+      if (type === "risky") return { icon: "!", ringClass: "risky", title: "选项 C" };
+      return { icon: "✓", ringClass: "good", title: "选项 A" };
+    }
+
+    function renderFeedbackCard(option, feedback, isTimeout) {
+      const toastLayer = getToastLayer();
+      if (!toastLayer) return;
+
+      const iconMeta = getFeedbackIcon(option.type, isTimeout);
+
+      toastLayer.innerHTML = [
+        '<div class="screen feedback-screen">',
+        '  <img class="bg-image" src="' + SCENE_BG + '" alt="反馈背景">',
+        '  <div class="bg-overlay"></div>',
+        '  <div class="stage">',
+        '    <div class="feedback-card">',
+        '      <div class="feedback-ring ' + iconMeta.ringClass + '">' + iconMeta.icon + "</div>",
+        '      <h3 class="feedback-title">' + escapeHtml(iconMeta.title) + "</h3>",
+        '      <p class="feedback-copy">' + escapeHtml(feedback) + "</p>",
+        "    </div>",
+        "  </div>",
+        "</div>"
+      ].join("");
+    }
+
+    function renderWangmaLevel(onComplete) {
+      wangmaCompleteHandler = typeof onComplete === "function" ? onComplete : function noop() {};
+      wangmaCompletionSent = false;
+      wangmaState = createInitialWangmaState();
+      cleanupWangmaScene();
+      renderWangmaIntro();
+    }
+
+    function renderWangmaIntro() {
+      cleanupWangmaScene();
+
+      const uiLayer = getUiLayer();
+      if (!uiLayer) return;
+
+      uiLayer.innerHTML = [
+        '<section class="screen intro-screen">',
+        '  <img class="bg-image" src="' + INTRO_BG + '" alt="豪门客厅">',
+        '  <div class="bg-overlay"></div>',
+        '  <div class="particle p1"></div>',
+        '  <div class="particle p2"></div>',
+        '  <div class="particle p3"></div>',
+        '  <div class="stage">',
+        '    <div style="padding-top:32px;">',
+        '      <p class="eyebrow">OBSERVATION RECORD</p>',
+        '      <h1 class="intro-title">王妈<br>别看了</h1>',
+        '      <div class="intro-line"></div>',
+        '      <p class="intro-subtitle">霸总夫人秀恩爱观察实录</p>',
+        "    </div>",
+        '    <div class="intro-copy-card">',
+        '      <p class="copy-text">你睁开眼，发现自己端着咖啡站在豪门客厅。</p>',
+        '      <p class="copy-text">水晶灯很亮，沙发很贵，空气里弥漫着三分深情、三分尴尬和四分说不清的抽象。少爷和夫人正在对视。</p>',
+        '      <div class="system-note">',
+        '        <p class="system-label">系统提示</p>',
+        '        <p class="system-copy">你现在是王妈，请在不打断剧情的情况下维持体面。</p>',
+        "      </div>",
+        "    </div>",
+        '    <button id="wangma-start-button" class="primary-button">开始吃瓜...</button>',
+        "  </div>",
+        "</section>"
+      ].join("");
+
+      document.getElementById("wangma-start-button").addEventListener("click", startWangmaGame);
+    }
+
+    function startWangmaGame() {
+      wangmaState = createInitialWangmaState();
+      renderWangmaScene(0);
+    }
+
+    function renderWangmaScene(sceneIndex) {
+      cleanupWangmaScene();
+
+      const uiLayer = getUiLayer();
+      if (!uiLayer) return;
+
+      const scene = wangmaScenes[sceneIndex];
+      const bulletHtml = scene.bullets.map(function renderBullet(text) {
+        return '<div class="bullet">“' + escapeHtml(text) + '”</div>';
+      }).join("");
+
+      const setupHtml = scene.setup
+        ? '<p class="copy-text" style="margin:0 0 10px;font-size:13px;color:rgba(107,114,128,0.92);">' + escapeHtml(scene.setup) + "</p>"
+        : "";
+
+      const optionHtml = scene.options.map(function renderOption(option, index) {
+        return [
+          '<button class="option-button" data-wangma-option="' + index + '">',
+          '  <span class="option-content">',
+          '    <span class="option-letter">' + WANGMA_OPTION_LABELS[index] + "</span>",
+          '    <span class="option-text">' + escapeHtml(option.text) + "</span>",
+          "  </span>",
+          "</button>"
+        ].join("");
+      }).join("");
+
+      uiLayer.innerHTML = [
+        '<section class="screen scene-screen">',
+        '  <img class="bg-image" src="' + SCENE_BG + '" alt="明亮场景">',
+        '  <div class="bg-overlay"></div>',
+        '  <div class="glow-orb"></div>',
+        '  <div class="bullet-layer">' + bulletHtml + "</div>",
+        '  <div class="stage">',
+        '    <div class="scene-top">',
+        '      <div class="top-row">',
+        '        <span class="scene-chip">' + escapeHtml(scene.title) + "</span>",
+        '        <div class="timer-rail"><div id="wangma-timer-fill" class="timer-fill" style="width:100%;"></div></div>',
+        '        <span id="wangma-countdown" class="timer-text">20s</span>',
+        "      </div>",
+        "    </div>",
+        '    <div class="scene-bottom">',
+        '      <div class="line-stack">',
+                 setupHtml,
+        '        <div class="line-bubble left">',
+        '          <div class="speaker-bar"></div>',
+        '          <span class="speaker-name">少爷</span>',
+        '          <p class="line-text">' + escapeHtml(scene.lines[0].text) + "</p>",
+        "        </div>",
+        '        <div class="line-bubble right">',
+        '          <div class="speaker-bar"></div>',
+        '          <span class="speaker-name">夫人</span>',
+        '          <p class="line-text">' + escapeHtml(scene.lines[1].text) + "</p>",
+        "        </div>",
+        "      </div>",
+        '      <div class="question-row"><span class="question-line"></span><span>' + escapeHtml(scene.question.replace("：", "")) + '</span><span class="question-line reverse"></span></div>',
+        '      <div class="options">' + optionHtml + "</div>",
+        "    </div>",
+        "  </div>",
+        "</section>"
+      ].join("");
+
+      document.querySelectorAll("[data-wangma-option]").forEach(function bindOption(button) {
+        button.addEventListener("click", function handleClick() {
+          handleWangmaChoice(Number(button.getAttribute("data-wangma-option")), false);
+        });
+      });
+
+      startSceneTimer();
+    }
+
+    function disableOptionButtons() {
+      document.querySelectorAll("[data-wangma-option]").forEach(function disableButton(button) {
+        button.disabled = true;
+      });
+    }
+
+    function handleWangmaChoice(optionIndex, isTimeout) {
+      if (wangmaState.isResolving) return;
+      wangmaState.isResolving = true;
+
+      clearWangmaTimer();
+      disableOptionButtons();
+
+      const scene = wangmaScenes[wangmaState.sceneIndex];
+      const option = scene.options[optionIndex];
+
+      applyWangmaEffects(wangmaState, option.effects);
+
+      wangmaState.choices.push({
+        sceneId: scene.id,
+        optionIndex: optionIndex,
+        optionText: option.text,
+        optionType: option.type,
+        isTimeout: Boolean(isTimeout)
+      });
+
+      const feedback = isTimeout
+        ? (scene.timeoutFeedback || "王妈选择了沉默。豪门保住了，网感没了。")
+        : option.feedback;
+
+      renderFeedbackCard(option, feedback, isTimeout);
+
+      registerWangmaTimeout(setTimeout(function goNext() {
+        wangmaState.sceneIndex += 1;
+        wangmaState.isResolving = false;
+
+        if (wangmaState.sceneIndex >= wangmaScenes.length) {
+          finishWangmaLevel();
+        } else {
+          renderWangmaScene(wangmaState.sceneIndex);
+        }
+      }, 1600));
+    }
+
+    function finishWangmaLevel() {
+      cleanupWangmaScene();
+
+      const uiLayer = getUiLayer();
+      if (!uiLayer) return;
+
+      const wangmaResult = getWangmaResult();
+      mergeWangmaResultIntoGameState(wangmaResult);
+
+      uiLayer.innerHTML = [
+        '<section class="screen result-screen">',
+        '  <div class="bg-wash"></div>',
+        '  <div class="particle p1" style="top:10%;left:10%;"></div>',
+        '  <div class="particle p2" style="top:16%;right:12%;width:10px;height:10px;"></div>',
+        '  <div class="particle p3" style="bottom:34%;left:24%;"></div>',
+        '  <div class="stage">',
+        '    <div class="result-header">',
+        '      <p class="eyebrow">LEVEL COMPLETE</p>',
+        '      <div class="result-rule"><span></span><strong>本局评价</strong><span></span></div>',
+        "    </div>",
+        '    <div class="result-core">',
+        '      <div class="result-deco">✦</div>',
+        '      <div class="result-icon">♛</div>',
+        '      <h2 class="result-title">' + escapeHtml(wangmaResult.title) + "</h2>",
+        '      <p class="result-comment">' + escapeHtml(wangmaResult.comment) + "</p>",
+        "    </div>",
+        '    <div class="result-bars">',
+        '      <div>',
+        '        <div class="bar-item-label"><span>本关网感评分</span><strong class="bar-item-value" style="color:#ca8a04;">' + wangmaResult.levelScore + "</strong></div>",
+        '        <div class="bar-track"><div class="bar-fill score" style="width:' + wangmaResult.levelScore + '%;"></div></div>',
+        "      </div>",
+        '      <div>',
+        '        <div class="bar-item-label"><span>职业素养</span><strong class="bar-item-value" style="color:#3b82f6;">' + wangmaResult.professionalism + "</strong></div>",
+        '        <div class="bar-track"><div class="bar-fill pro" style="width:' + wangmaResult.professionalism + '%;"></div></div>',
+        "      </div>",
+        '      <div>',
+        '        <div class="bar-item-label"><span>生存尴尬值</span><strong class="bar-item-value" style="color:#ec4899;">' + wangmaResult.awkwardness + "</strong></div>",
+        '        <div class="bar-track"><div class="bar-fill awkward" style="width:' + wangmaResult.awkwardness + '%;"></div></div>',
+        "      </div>",
+        "    </div>",
+        '    <button id="wangma-continue-button" class="secondary-button">进入下一关</button>',
+        "  </div>",
+        "</section>"
+      ].join("");
+
+      document.getElementById("wangma-continue-button").addEventListener("click", function onContinue() {
+        completeWangmaLevel(wangmaResult);
+      });
+
+      if (!isEmbeddedFlow) {
+        registerWangmaTimeout(setTimeout(function autoComplete() {
+          completeWangmaLevel(wangmaResult);
+        }, 220));
+      }
+    }
+
+    function completeWangmaLevel(wangmaResult) {
+      if (wangmaCompletionSent) return;
+      wangmaCompletionSent = true;
+      wangmaCompleteHandler(wangmaResult);
+    }
+
+    function showWangmaFeedback(feedback) {
+      renderFeedbackCard({ type: "best", effects: {} }, feedback, false);
+    }
+
+    function showErrorMessage(error) {
+      console.error(error);
+      cleanupWangmaScene();
+
+      const uiLayer = getUiLayer();
+      if (!uiLayer) return;
+
+      uiLayer.innerHTML = [
+        '<section class="screen result-screen">',
+        '  <div class="bg-wash"></div>',
+        '  <div class="error-card">',
+        '    <div class="error-inner">',
+        '      <p class="eyebrow">SIGNAL LOST</p>',
+        '      <h2 style="margin:0 0 12px;font-size:30px;color:#a16207;">豪门信号乱了</h2>',
+        '      <p class="copy-text" style="text-align:center;margin-bottom:20px;">哎呀，豪门信号乱了，请重启试试吧~</p>',
+        '      <button id="wangma-restart-button" class="primary-button" style="margin-top:0;">重新进入第三关</button>',
+        "    </div>",
+        "  </div>",
+        "</section>"
+      ].join("");
+
+      document.getElementById("wangma-restart-button").addEventListener("click", function restart() {
+        renderWangmaLevel(wangmaCompleteHandler);
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    window.renderWangmaLevel = renderWangmaLevel;
+    window.renderWangmaIntro = renderWangmaIntro;
+    window.startWangmaGame = startWangmaGame;
+    window.renderWangmaScene = renderWangmaScene;
+    window.handleWangmaChoice = handleWangmaChoice;
+    window.applyWangmaEffects = applyWangmaEffects;
+    window.showWangmaFeedback = showWangmaFeedback;
+    window.finishWangmaLevel = finishWangmaLevel;
+    window.getWangmaResult = getWangmaResult;
+
+    window.addEventListener("error", function handleError(event) {
+      showErrorMessage(event.error || event.message);
+    });
+
+    window.addEventListener("unhandledrejection", function handleRejection(event) {
+      showErrorMessage(event.reason);
+    });
+
+    try {
+      renderWangmaLevel(function defaultComplete(result) {
+        if (isEmbeddedFlow) {
+          notifyParentLevelComplete(result);
+          return;
+        }
+        console.log("第三关完成：", result);
+      });
+    } catch (error) {
+      showErrorMessage(error);
+    }
+  </script>
+</body>
+</html>
