@@ -103,6 +103,8 @@
             50% { transform: translateY(-15px); }
         }
     </style>
+    <link rel="stylesheet" href="./assets/dragon-leaderboard.css">
+    <script src="./assets/dragon-leaderboard.js"></script>
 </head>
 <body>
 
@@ -230,6 +232,11 @@
         warningLine: document.getElementById('warning-line'),
         startBtn: document.getElementById('start-btn')
     };
+
+    const leaderboard = window.DragonLeaderboard.create({
+        startMount: UI.startScreen,
+        resultMount: document.getElementById('result-modal')
+    });
 
     // 初始化游戏引擎
     function initPhysics() {
@@ -433,10 +440,12 @@
     }
 
     function triggerGameOver() {
+        if (Game.state === 'GAMEOVER') return;
         Game.state = 'GAMEOVER';
         Runner.stop(Game.runner);
 
         UI.finalScore.innerText = Game.score;
+        leaderboard.finish(Game.score);
         UI.gameOverScreen.style.display = 'flex';
         setTimeout(() => {
             UI.gameOverScreen.style.opacity = '1';
@@ -445,6 +454,9 @@
     }
 
     function startGame() {
+        if (UI.startBtn.disabled) return;
+        UI.startBtn.disabled = true;
+        leaderboard.begin();
         UI.startScreen.style.opacity = '0';
         setTimeout(() => {
             UI.startScreen.style.display = 'none';

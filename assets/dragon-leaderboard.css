@@ -1,0 +1,46 @@
+.dragon-entry { width:100%; max-width:340px; display:flex; flex-direction:column; align-items:stretch; gap:8px; margin:18px auto 0; font-family:inherit; }
+.dragon-guest { color:#8e6850; font-size:12px; text-align:center; line-height:1.5; overflow-wrap:anywhere; }
+.dragon-board-button { appearance:none; display:flex; align-items:center; justify-content:center; gap:12px; min-height:44px; padding:10px 14px; border:1px solid #edc896; border-radius:16px; background:#fff6df; color:#8f431a; font-family:inherit; font-size:14px; font-weight:700; line-height:1.4; cursor:pointer; touch-action:manipulation; }
+.dragon-board-button span { font-size:10px; letter-spacing:.08em; color:#ad7442; }
+.dragon-board-button:hover { background:#ffedc2; }
+.dragon-result-status,.dragon-best { margin:0; text-align:center; font-size:12px; line-height:1.6; color:#7d593b; overflow-wrap:anywhere; }
+.dragon-best { font-weight:700; color:#ae501d; }
+.dragon-retry { border:0; background:transparent; color:#ba4615; text-decoration:underline; font:inherit; font-size:13px; cursor:pointer; padding:6px; }
+.dragon-entry [hidden],.dragon-leaderboard [hidden] { display:none !important; }
+.dragon-leaderboard { box-sizing:border-box; width:min(430px, calc(100vw - 24px)); max-height:calc(100dvh - 32px); padding:0; margin:auto; border:1px solid #f4d7ae; border-radius:26px; background:#fffaf0; color:#493020; box-shadow:0 24px 80px #29180755; overflow:hidden; font-family:'Segoe UI','Microsoft YaHei',sans-serif; touch-action:pan-y; user-select:text; -webkit-user-select:text; }
+.dragon-leaderboard::backdrop { background:rgb(40 27 18 / 65%); backdrop-filter:blur(5px); }
+.dragon-board-shell { display:flex; flex-direction:column; max-height:calc(100dvh - 34px); padding:24px 20px 16px; box-sizing:border-box; }
+.dragon-board-header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-shrink:0; }
+.dragon-eyebrow { display:block; color:#a96532; font-size:10px; font-weight:800; letter-spacing:.14em; }
+.dragon-board-header h2 { margin:5px 0 0; font-size:28px; line-height:1.3; font-weight:900; color:#a94e1b; }
+.dragon-close { flex-shrink:0; width:40px; height:40px; border:1px solid #eed8b8; border-radius:50%; background:#fff; color:#805138; cursor:pointer; font-size:27px; line-height:1; }
+.dragon-rules { margin:8px 0 18px; font-size:12px; color:#98765a; }
+.dragon-profile { display:flex; gap:8px; align-items:end; flex-shrink:0; }
+.dragon-profile label { flex:1; min-width:0; font-size:11px; color:#8c6246; }
+.dragon-profile input { display:block; box-sizing:border-box; width:100%; margin-top:5px; border:1px solid #dfc9ab; border-radius:10px; padding:10px 12px; color:#4d3423; background:#fff; font:inherit; font-size:16px; touch-action:manipulation; user-select:text; -webkit-user-select:text; }
+.dragon-profile button { min-height:42px; border:0; border-radius:10px; padding:8px 14px; background:#ce6627; color:white; font-weight:700; cursor:pointer; }
+.dragon-leaderboard button:disabled { opacity:.5; cursor:wait; }
+.dragon-leaderboard :focus-visible,.dragon-entry :focus-visible { outline:3px solid #d98235; outline-offset:3px; }
+.dragon-form-status { min-height:16px; margin:6px 0 14px; color:#9b785a; font-size:10px; line-height:1.5; }
+.dragon-my-record { padding:10px 12px; border:1px solid #f2d28f; border-radius:10px; background:#fff0cb; font-size:12px; font-weight:700; color:#90551f; margin-bottom:12px; flex-shrink:0; }
+.dragon-table-scroll { overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; -webkit-overflow-scrolling:touch; min-height:90px; max-height:44dvh; scrollbar-width:thin; scrollbar-color:#dcbd93 transparent; }
+.dragon-table { border-collapse:collapse; width:100%; table-layout:fixed; font-size:13px; }
+.dragon-table th { position:sticky; top:0; padding:10px 6px; background:#fffaf0; border-bottom:1px solid #ead9bf; color:#a17b59; font-size:10px; font-weight:600; text-align:left; }
+.dragon-table th:first-child { width:42px; text-align:center; }
+.dragon-table th:last-child { width:78px; text-align:right; }
+.dragon-table td { padding:12px 6px; border-bottom:1px solid #f0e5d5; overflow-wrap:anywhere; }
+.dragon-table td:last-child { text-align:right; font-variant-numeric:tabular-nums; font-weight:800; color:#a44f1c; }
+.dragon-rank { text-align:center; color:#997657; font-variant-numeric:tabular-nums; }
+.dragon-rank-1,.dragon-rank-2,.dragon-rank-3 { font-size:23px; }
+.dragon-is-me { background:#ffedc7; }
+.dragon-empty { padding:26px 12px; text-align:center; color:#aa8362; font-size:13px; line-height:1.7; }
+.dragon-board-footer { display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:12px; flex-shrink:0; }
+.dragon-board-footer span { color:#aa886c; font-size:10px; line-height:1.5; }
+.dragon-board-footer button { flex-shrink:0; border:1px solid #e8cfac; border-radius:8px; background:#fff; color:#965324; padding:7px 12px; cursor:pointer; }
+@media (max-height:620px) {
+  .dragon-board-shell { padding:14px 16px 10px; }
+  .dragon-board-header h2 { font-size:22px; }
+  .dragon-rules { margin:4px 0 10px; }
+  .dragon-form-status { margin-bottom:8px; }
+  .dragon-entry { margin-top:10px; gap:5px; }
+}

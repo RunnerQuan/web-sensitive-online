@@ -1892,6 +1892,8 @@
 
     }
   </style>
+  <link rel="stylesheet" href="./assets/dragon-leaderboard.css">
+  <script src="./assets/dragon-leaderboard.js"></script>
 </head>
 <body>
   <div id="app" class="hakidou-app">
@@ -2958,6 +2960,7 @@
       let mergeSet = new Set();
       let resultAudio = null;
       let resultAudioPlayed = false;
+      let leaderboard = null;
 
       function getInitialState() {
         return {
@@ -3026,6 +3029,10 @@
         state = getInitialState();
         initPhysics();
         renderIntro();
+        leaderboard = window.DragonLeaderboard.create({
+          startMount: refs.start.querySelector('.sixth-panel'),
+          resultMount: refs.result.querySelector('.sixth-panel')
+        });
       }
 
       function initPhysics() {
@@ -3101,6 +3108,7 @@
         runnerActive = false;
         if (resizeHandler) window.removeEventListener("resize", resizeHandler);
         stopResultAudio();
+        leaderboard?.destroy();
       }
 
       function getState() {
@@ -3108,6 +3116,7 @@
       }
 
       function renderIntro() {
+        leaderboard?.reset();
         state.phase = "intro";
         refs.start.style.display = "flex";
         refs.result.style.display = "none";
@@ -3119,6 +3128,7 @@
 
       function startGame() {
         if (!engine) initPhysics();
+        leaderboard?.begin();
         clearWorld();
         state = getInitialState();
         state.phase = "playing";
@@ -3276,6 +3286,7 @@
         runnerActive = false;
         const finalScore = state.score;
         refs.finalScore.textContent = String(finalScore);
+        leaderboard?.finish(finalScore);
         context.finishGame({
           score: finalScore,
           title: "奶龙堆满啦",

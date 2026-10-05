@@ -3,3 +3,10 @@
 .workbuddy/
 archive/
 docs/
+node_modules/
+dist/
+.netlify/
+.env
+.env.*
+!.env.example
+test-results/
