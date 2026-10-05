@@ -1634,6 +1634,37 @@
       touch-action: none;
     }
 
+    .sixth-score {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 7;
+      min-width: 96px;
+      max-width: calc(100% - 24px);
+      padding: 9px 14px;
+      border: 1px solid #fed7aa;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 3px 12px rgba(154, 52, 18, 0.08);
+      pointer-events: none;
+    }
+
+    .sixth-score span {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #9a3412;
+    }
+
+    .sixth-score strong {
+      display: block;
+      font-size: 30px;
+      line-height: 1.15;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      color: #ea580c;
+    }
+
     .sixth-warning {
       position: absolute;
       top: 15%;
@@ -2985,6 +3016,10 @@
         container.innerHTML = `
           <div class="sixth-stage">
             <div class="sixth-area" data-area>
+              <div class="sixth-score" data-score-panel hidden>
+                <span>当前得分</span>
+                <strong data-score aria-live="polite" aria-atomic="true">0</strong>
+              </div>
               <div class="sixth-warning" data-warning></div>
               <div class="sixth-aim-line" data-aim></div>
               <div class="sixth-fruit sixth-preview" data-preview style="display:none;"></div>
@@ -3017,6 +3052,8 @@
         `;
         refs = {
           area: container.querySelector("[data-area]"),
+          scorePanel: container.querySelector("[data-score-panel]"),
+          score: container.querySelector("[data-score]"),
           warning: container.querySelector("[data-warning]"),
           aim: container.querySelector("[data-aim]"),
           preview: container.querySelector("[data-preview]"),
@@ -3117,6 +3154,8 @@
 
       function renderIntro() {
         leaderboard?.reset();
+        refs.scorePanel.hidden = true;
+        refs.score.textContent = "0";
         state.phase = "intro";
         refs.start.style.display = "flex";
         refs.result.style.display = "none";
@@ -3134,6 +3173,8 @@
         state.phase = "playing";
         state.score = 0;
         state.dropX = refs.area.clientWidth / 2;
+        refs.score.textContent = "0";
+        refs.scorePanel.hidden = false;
         state.nextLevel = Math.floor(Math.random() * 4);
         if (runner && engine && !runnerActive) {
           Runner.run(runner, engine);
@@ -3276,6 +3317,7 @@
 
       function addScore(points) {
         state.score += points;
+        refs.score.textContent = state.score.toLocaleString("zh-CN");
       }
 
       function triggerGameOver() {
