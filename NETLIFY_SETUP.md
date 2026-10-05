@@ -2,6 +2,20 @@
 
 网站继续部署在 Netlify。新增的 Netlify Functions 负责游客身份和成绩，Netlify Database（PostgreSQL）负责永久保存。首页内嵌游戏与 `sixth.html` 共用同一榜单。
 
+## 当前项目的发布方式
+
+2026-10-05 已为 `webonline-tiktok` 创建生产数据库，并通过 Netlify CLI 发布页面、两个函数和数据库迁移。GitHub 的 `main` 分支已同步。该项目原先使用 Netlify Drop，目前尚未绑定 Git 自动部署，因此以后只推送 GitHub 不会自动更新网站。
+
+后续可在仓库根目录使用 Node.js 24 执行以下命令发布（CLI 需要登录拥有此项目的账号）：
+
+```sh
+npm ci
+npm test
+netlify deploy --prod --context production --site 7f574b75-3837-4ba9-8ff3-457a5fe0bc9e
+```
+
+此命令读取 `netlify.toml`，自动构建、打包函数和提交迁移。不要只上传 `dist` 文件夹，否则不会包含服务端函数。也可以以后在 Netlify 关联 GitHub 仓库并启用 `main` 分支自动构建；下文说明对应配置。
+
 ## 1. 将代码更新到 GitHub
 
 把本次代码提交、推送到 Netlify 绑定的生产分支（通常是 `main`）。需要包含 `package.json`、`package-lock.json`、`netlify.toml`、`netlify/`、`server/`、`scripts/`、排行榜 JS/CSS 和两个 HTML 页面的修改。
